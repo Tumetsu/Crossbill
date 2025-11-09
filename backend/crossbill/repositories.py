@@ -132,7 +132,11 @@ class ChapterRepository:
 
     def get_by_book_id(self, book_id: int) -> Sequence[models.Chapter]:
         """Get all chapters for a book."""
-        stmt = select(models.Chapter).where(models.Chapter.book_id == book_id).order_by(models.Chapter.name)
+        stmt = (
+            select(models.Chapter)
+            .where(models.Chapter.book_id == book_id)
+            .order_by(models.Chapter.name)
+        )
         return self.db.execute(stmt).scalars().all()
 
 
