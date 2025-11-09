@@ -1,4 +1,4 @@
-import { Box, Container, Typography, Alert } from '@mui/material';
+import { Alert, Box, Container, Typography } from '@mui/material';
 import { useGetBooksApiV1HighlightsBooksGet } from '../../api/generated/highlights/highlights';
 import { Spinner } from '../common/Spinner';
 import { BookList } from './components/BookList';
@@ -24,11 +24,7 @@ export const LandingPage = () => {
 
         {isLoading && <Spinner />}
 
-        {isError && (
-          <Alert severity="error">
-            Failed to load books. Please try again later.
-          </Alert>
-        )}
+        {isError && <Alert severity="error">Failed to load books. Please try again later.</Alert>}
 
         {data?.books && data.books.length === 0 && (
           <Typography variant="body1" color="text.secondary">

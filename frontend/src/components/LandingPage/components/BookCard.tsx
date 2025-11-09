@@ -1,4 +1,4 @@
-import { Card, CardContent, Typography, Box } from '@mui/material';
+import { Box, Card, CardContent, Typography } from '@mui/material';
 import type { BookWithHighlightCount } from '../../../api/generated/model';
 
 export interface BookCardProps {
