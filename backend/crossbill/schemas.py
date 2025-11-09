@@ -11,6 +11,7 @@ class BookBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=500, description="Book title")
     author: str | None = Field(None, max_length=500, description="Book author")
     isbn: str | None = Field(None, max_length=20, description="Book ISBN")
+    cover: str | None = Field(None, max_length=500, description="Book cover image path")
 
 
 class BookCreate(BookBase):
@@ -96,6 +97,7 @@ class BookWithHighlightCount(BaseModel):
     title: str
     author: str | None
     isbn: str | None
+    cover: str | None
     highlight_count: int = Field(..., ge=0, description="Number of highlights for this book")
     created_at: datetime
     updated_at: datetime
@@ -119,7 +121,9 @@ class ChapterWithHighlights(BaseModel):
 
     id: int
     name: str
-    highlights: list[Highlight] = Field(default_factory=list, description="List of highlights in this chapter")
+    highlights: list[Highlight] = Field(
+        default_factory=list, description="List of highlights in this chapter"
+    )
     created_at: datetime
     updated_at: datetime
 
@@ -133,7 +137,10 @@ class BookDetails(BaseModel):
     title: str
     author: str | None
     isbn: str | None
-    chapters: list[ChapterWithHighlights] = Field(default_factory=list, description="List of chapters with highlights")
+    cover: str | None
+    chapters: list[ChapterWithHighlights] = Field(
+        default_factory=list, description="List of chapters with highlights"
+    )
     created_at: datetime
     updated_at: datetime
 
