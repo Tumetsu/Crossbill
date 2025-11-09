@@ -12,7 +12,7 @@ export interface HighlightCardProps {
   highlight: Highlight;
 }
 
-const previewLength = 200;
+const previewWordCount = 40;
 
 export const HighlightCard = ({ highlight }: HighlightCardProps) => {
   const startsWithLowercase =
@@ -21,13 +21,16 @@ export const HighlightCard = ({ highlight }: HighlightCardProps) => {
     highlight.text[0] !== highlight.text[0].toUpperCase();
   const formattedText = startsWithLowercase ? `...${highlight.text}` : highlight.text;
 
-  const previewText =
-    formattedText.length > previewLength
-      ? formattedText.substring(0, previewLength) + '...'
-      : formattedText;
+  const words = formattedText.split(/\s+/);
+  const isExpandable = words.length > previewWordCount;
+
+  const previewText = isExpandable
+    ? words.slice(0, previewWordCount).join(' ') + '...'
+    : formattedText;
+
+  const remainingText = isExpandable ? words.slice(previewWordCount).join(' ') : '';
 
   const [isExpanded, setExpanded] = useState(false);
-  const isExpandable = formattedText.length > previewLength;
 
   return (
     <HoverableCard
@@ -82,7 +85,7 @@ export const HighlightCard = ({ highlight }: HighlightCardProps) => {
                   pl: 4.5,
                 }}
               >
-                {formattedText.length > previewLength && formattedText.substring(previewLength)}
+                {remainingText}
               </Typography>
             </Collapse>
 
