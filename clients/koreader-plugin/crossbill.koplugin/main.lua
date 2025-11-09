@@ -109,14 +109,25 @@ function CrossbillSync:performSync()
         logger.dbg("Crossbill: Syncing book:", book_props.display_title or book_props.title or doc_path)
 
         -- Extract ISBN from identifiers if available
+        -- First try from self.ui.doc_props, then fall back to reading from DocSettings
         local isbn = nil
-        if book_props.identifiers then
+        local doc_settings = DocSettings:open(doc_path)
+        local metadata_props = doc_settings:readSetting("doc_props") or book_props
+
+        if metadata_props.identifiers then
             -- Try to extract ISBN from identifiers string
-            -- Note: KOReader uses backslash line continuation in the metadata file,
-            -- so the identifiers are concatenated without newlines at runtime.
-            -- Format: "uuid:...calibre:...ISBN:9780735211292AMAZON:..."
+            -- The format can vary - identifiers may be separated by newlines, spaces, or concatenated
+            -- Examples: "ISBN:9780735211292\nAMAZON:..." or "ISBN:9780735211292 AMAZON:..."
             -- ISBNs are numeric with possible hyphens and X (for ISBN-10)
-            isbn = book_props.identifiers:match("ISBN:([%d%-X]+)")
+            -- Match ISBN: followed by digits/hyphens/X until we hit a non-ISBN character or end of string
+            isbn = metadata_props.identifiers:match("ISBN:([%d%-xX]+)")
+            if isbn then
+                logger.dbg("Crossbill: Extracted ISBN:", isbn)
+            else
+                logger.dbg("Crossbill: No ISBN found in identifiers:", metadata_props.identifiers)
+            end
+        else
+            logger.dbg("Crossbill: No identifiers field found in metadata")
         end
 
         local book_data = {
