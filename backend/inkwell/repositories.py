@@ -1,0 +1,184 @@
+"""Repository layer for database operations using repository pattern."""
+
+import logging
+from collections.abc import Sequence
+
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from inkwell import models, schemas
+
+logger = logging.getLogger(__name__)
+
+
+class BookRepository:
+    """Repository for Book database operations."""
+
+    def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
+        self.db = db
+
+    def find_by_file_path(self, file_path: str) -> models.Book | None:
+        """Find a book by its file path."""
+        stmt = select(models.Book).where(models.Book.file_path == file_path)
+        return self.db.execute(stmt).scalar_one_or_none()
+
+    def create(self, book_data: schemas.BookCreate) -> models.Book:
+        """Create a new book."""
+        book = models.Book(**book_data.model_dump())
+        self.db.add(book)
+        self.db.commit()
+        self.db.refresh(book)
+        logger.info(f"Created book: {book.title} (id={book.id})")
+        return book
+
+    def update(self, book: models.Book, book_data: schemas.BookCreate) -> models.Book:
+        """Update an existing book's metadata."""
+        book.title = book_data.title
+        book.author = book_data.author
+        book.isbn = book_data.isbn
+        self.db.commit()
+        self.db.refresh(book)
+        logger.info(f"Updated book: {book.title} (id={book.id})")
+        return book
+
+    def get_or_create(self, book_data: schemas.BookCreate) -> models.Book:
+        """Get existing book by file path or create a new one."""
+        book = self.find_by_file_path(book_data.file_path)
+
+        if book:
+            # Update metadata in case it changed
+            return self.update(book, book_data)
+
+        # Create new book
+        return self.create(book_data)
+
+
+class ChapterRepository:
+    """Repository for Chapter database operations."""
+
+    def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
+        self.db = db
+
+    def find_by_name_and_book(self, book_id: int, name: str) -> models.Chapter | None:
+        """Find a chapter by name and book ID."""
+        stmt = select(models.Chapter).where(
+            models.Chapter.book_id == book_id, models.Chapter.name == name
+        )
+        return self.db.execute(stmt).scalar_one_or_none()
+
+    def create(self, book_id: int, name: str) -> models.Chapter:
+        """Create a new chapter."""
+        chapter = models.Chapter(book_id=book_id, name=name)
+        self.db.add(chapter)
+        self.db.commit()
+        self.db.refresh(chapter)
+        logger.info(f"Created chapter: {name} for book_id={book_id}")
+        return chapter
+
+    def get_or_create(self, book_id: int, name: str) -> models.Chapter:
+        """Get existing chapter by name and book or create a new one."""
+        chapter = self.find_by_name_and_book(book_id, name)
+
+        if chapter:
+            return chapter
+
+        try:
+            return self.create(book_id, name)
+        except IntegrityError:
+            # Handle race condition: another request created the chapter
+            self.db.rollback()
+            chapter = self.find_by_name_and_book(book_id, name)
+            if chapter:
+                return chapter
+            raise
+
+
+class HighlightRepository:
+    """Repository for Highlight database operations."""
+
+    def __init__(self, db: Session) -> None:
+        """Initialize repository with database session."""
+        self.db = db
+
+    def create(self, book_id: int, highlight_data: schemas.HighlightCreate) -> models.Highlight:
+        """Create a new highlight."""
+        highlight = models.Highlight(
+            book_id=book_id, **highlight_data.model_dump(exclude={"chapter"})
+        )
+        self.db.add(highlight)
+        self.db.commit()
+        self.db.refresh(highlight)
+        return highlight
+
+    def create_with_chapter(
+        self, book_id: int, chapter_id: int | None, highlight_data: schemas.HighlightCreate
+    ) -> models.Highlight:
+        """Create a new highlight with chapter association."""
+        highlight = models.Highlight(
+            book_id=book_id,
+            chapter_id=chapter_id,
+            **highlight_data.model_dump(exclude={"chapter"}),
+        )
+        self.db.add(highlight)
+        self.db.commit()
+        self.db.refresh(highlight)
+        return highlight
+
+    def try_create(
+        self, book_id: int, chapter_id: int | None, highlight_data: schemas.HighlightCreate
+    ) -> tuple[models.Highlight | None, bool]:
+        """
+        Try to create a highlight.
+
+        Returns:
+            tuple[Highlight | None, bool]: (highlight, was_created)
+            If duplicate, returns (None, False)
+        """
+        try:
+            highlight = self.create_with_chapter(book_id, chapter_id, highlight_data)
+            return highlight, True
+        except IntegrityError:
+            # Duplicate - unique constraint violated
+            self.db.rollback()
+            logger.debug(
+                f"Skipped duplicate highlight for book_id={book_id}, "
+                f"text='{highlight_data.text[:50]}...'"
+            )
+            return None, False
+
+    def bulk_create(
+        self, book_id: int, highlights_data: list[tuple[int | None, schemas.HighlightCreate]]
+    ) -> tuple[int, int]:
+        """
+        Bulk create highlights with deduplication.
+
+        Args:
+            book_id: ID of the book
+            highlights_data: List of (chapter_id, highlight_data) tuples
+
+        Returns:
+            tuple[int, int]: (created_count, skipped_count)
+        """
+        created = 0
+        skipped = 0
+
+        for chapter_id, highlight_data in highlights_data:
+            _, was_created = self.try_create(book_id, chapter_id, highlight_data)
+            if was_created:
+                created += 1
+            else:
+                skipped += 1
+
+        logger.info(
+            f"Bulk created highlights for book_id={book_id}: "
+            f"{created} created, {skipped} skipped"
+        )
+        return created, skipped
+
+    def find_by_book(self, book_id: int) -> Sequence[models.Highlight]:
+        """Find all highlights for a book."""
+        stmt = select(models.Highlight).where(models.Highlight.book_id == book_id)
+        return self.db.execute(stmt).scalars().all()
