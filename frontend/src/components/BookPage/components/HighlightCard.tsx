@@ -1,10 +1,10 @@
+import type { Highlight } from '@/api/generated/model';
 import {
   CalendarMonth as CalendarIcon,
   ChevronRight as ChevronRightIcon,
   FormatQuote as QuoteIcon,
 } from '@mui/icons-material';
 import { Box, CardContent, Collapse, IconButton, Typography } from '@mui/material';
-import type { Highlight } from '@/api/generated/model';
 import { HoverableCard } from '../../common/HoverableCard';
 
 export interface HighlightCardProps {
@@ -13,9 +13,13 @@ export interface HighlightCardProps {
   onToggle: (id: number) => void;
 }
 
+const previewLength = 200;
+
 export const HighlightCard = ({ highlight, isExpanded, onToggle }: HighlightCardProps) => {
   const previewText =
-    highlight.text.length > 120 ? highlight.text.substring(0, 120) + '...' : highlight.text;
+    highlight.text.length > previewLength
+      ? highlight.text.substring(0, previewLength) + '...'
+      : highlight.text;
 
   return (
     <HoverableCard
@@ -71,7 +75,7 @@ export const HighlightCard = ({ highlight, isExpanded, onToggle }: HighlightCard
                   pl: 4.5,
                 }}
               >
-                {highlight.text.length > 120 && highlight.text.substring(120)}
+                {highlight.text.length > previewLength && highlight.text.substring(previewLength)}
               </Typography>
             </Collapse>
 
