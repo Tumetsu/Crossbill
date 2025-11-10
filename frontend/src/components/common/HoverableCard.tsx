@@ -15,7 +15,6 @@ export const HoverableCard = ({ sx, children, ...rest }: HoverableCardProps) => 
         transition: 'all 0.2s',
         cursor: 'pointer',
         '&:hover': {
-          transform: 'translateY(-4px)',
           boxShadow: 3,
         },
         ...sx,
