@@ -84,6 +84,7 @@ def get_book_details(
             title=book.title,
             author=book.author,
             isbn=book.isbn,
+            cover=book.cover,
             chapters=chapters_with_highlights,
             created_at=book.created_at,
             updated_at=book.updated_at,
