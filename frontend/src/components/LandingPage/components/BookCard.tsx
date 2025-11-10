@@ -25,7 +25,21 @@ export const BookCard = ({ book }: BookCardProps) => {
   const menuOpen = Boolean(anchorEl);
   const queryClient = useQueryClient();
 
-  const deleteBookMutation = useDeleteBookApiV1BookBookIdDelete();
+  const deleteBookMutation = useDeleteBookApiV1BookBookIdDelete({
+    mutation: {
+      onSuccess: () => {
+        // Immediately refetch the books list query to refresh the UI
+        queryClient.refetchQueries({
+          queryKey: ['/api/v1/highlights/books'],
+          exact: true,
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to delete book:', error);
+        alert('Failed to delete book. Please try again.');
+      },
+    },
+  });
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
@@ -41,7 +55,7 @@ export const BookCard = ({ book }: BookCardProps) => {
     setAnchorEl(null);
   };
 
-  const handleDelete = async (event: React.MouseEvent) => {
+  const handleDelete = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
     handleMenuClose();
@@ -51,20 +65,7 @@ export const BookCard = ({ book }: BookCardProps) => {
         `Are you sure you want to delete "${book.title}"? This will permanently delete the book and all its highlights.`
       )
     ) {
-      try {
-        await deleteBookMutation.mutateAsync({ bookId: book.id });
-        // Invalidate and immediately refetch the books list query to refresh the UI
-        await queryClient.invalidateQueries({
-          queryKey: ['GetBooksApiV1HighlightsBooksGet'],
-          refetchType: 'active',
-        });
-        await queryClient.refetchQueries({
-          queryKey: ['GetBooksApiV1HighlightsBooksGet'],
-        });
-      } catch (error) {
-        console.error('Failed to delete book:', error);
-        alert('Failed to delete book. Please try again.');
-      }
+      deleteBookMutation.mutate({ bookId: book.id });
     }
   };
 
