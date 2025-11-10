@@ -49,7 +49,21 @@ export const HighlightCard = ({ highlight, bookId }: HighlightCardProps) => {
   const menuOpen = Boolean(anchorEl);
   const queryClient = useQueryClient();
 
-  const deleteHighlightMutation = useDeleteHighlightsApiV1BookBookIdHighlightDelete();
+  const deleteHighlightMutation = useDeleteHighlightsApiV1BookBookIdHighlightDelete({
+    mutation: {
+      onSuccess: () => {
+        // Immediately refetch the book details query to refresh the UI
+        queryClient.refetchQueries({
+          queryKey: [`/api/v1/book/${bookId}`],
+          exact: true,
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to delete highlight:', error);
+        alert('Failed to delete highlight. Please try again.');
+      },
+    },
+  });
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -63,7 +77,7 @@ export const HighlightCard = ({ highlight, bookId }: HighlightCardProps) => {
     setAnchorEl(null);
   };
 
-  const handleDelete = async (event: React.MouseEvent) => {
+  const handleDelete = (event: React.MouseEvent) => {
     event.stopPropagation();
     handleMenuClose();
 
@@ -72,23 +86,10 @@ export const HighlightCard = ({ highlight, bookId }: HighlightCardProps) => {
         'Are you sure you want to delete this highlight? This will soft-delete the highlight and prevent it from being recreated during sync.'
       )
     ) {
-      try {
-        await deleteHighlightMutation.mutateAsync({
-          bookId,
-          data: { highlight_ids: [highlight.id] },
-        });
-        // Invalidate and immediately refetch the book details query to refresh the UI
-        await queryClient.invalidateQueries({
-          queryKey: ['GetBookDetailsApiV1BookBookIdGet', bookId],
-          refetchType: 'active',
-        });
-        await queryClient.refetchQueries({
-          queryKey: ['GetBookDetailsApiV1BookBookIdGet', bookId],
-        });
-      } catch (error) {
-        console.error('Failed to delete highlight:', error);
-        alert('Failed to delete highlight. Please try again.');
-      }
+      deleteHighlightMutation.mutate({
+        bookId,
+        data: { highlight_ids: [highlight.id] },
+      });
     }
   };
 
