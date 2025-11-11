@@ -1,4 +1,4 @@
-import { AppBar as MuiAppBar, Box, Button, Container, Toolbar, Typography } from '@mui/material';
+import { Box, Button, Container, AppBar as MuiAppBar, Toolbar, Typography } from '@mui/material';
 import { Link } from '@tanstack/react-router';
 
 export function AppBar() {
@@ -29,7 +29,7 @@ export function AppBar() {
           >
             <Box
               component="img"
-              src="/icon-192.png"
+              src="/icon-transparent.png"
               alt="Crossbill"
               sx={{
                 height: 40,
