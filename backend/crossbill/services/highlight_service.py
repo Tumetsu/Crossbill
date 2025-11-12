@@ -2,9 +2,11 @@
 
 import logging
 
+from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 
-from crossbill import cover_service, repositories, schemas
+from crossbill import repositories, schemas
+from crossbill.services import cover_service
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +22,7 @@ class HighlightService:
         self.highlight_repo = repositories.HighlightRepository(db)
 
     def upload_highlights(
-        self, request: schemas.HighlightUploadRequest
+        self, request: schemas.HighlightUploadRequest, background_tasks: BackgroundTasks | None = None
     ) -> schemas.HighlightUploadResponse:
         """
         Process highlight upload from KOReader.
@@ -41,15 +43,17 @@ class HighlightService:
         # Step 1: Get or create book
         book = self.book_repo.get_or_create(request.book)
 
-        # Step 1.5: Fetch book cover if ISBN is available and no cover is set
-        # This was previously done in the repository, but moved here to service layer
-        if book.isbn and not book.cover:
-            cover_path = cover_service.fetch_book_cover(book.isbn, book.id)
-            if cover_path:
-                book.cover = cover_path
-                self.db.commit()
-                self.db.refresh(book)
-                logger.info(f"Added cover for book {book.id}: {cover_path}")
+        # Step 1.5: Schedule cover fetching as background task (non-blocking)
+        # Cover is fetched asynchronously and won't block the response
+        if book.isbn and not book.cover and background_tasks:
+            # Create a new session for the background task
+            background_tasks.add_task(
+                cover_service.fetch_and_save_book_cover,
+                book.isbn,
+                book.id,
+                self.db,
+            )
+            logger.info(f"Scheduled background cover fetch for book {book.id}")
 
         # Step 2: Process chapters and prepare highlights
         highlights_with_chapters: list[tuple[int | None, schemas.HighlightCreate]] = []
