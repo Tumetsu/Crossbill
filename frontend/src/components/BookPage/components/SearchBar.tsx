@@ -1,22 +1,51 @@
 import { Box, TextField } from '@mui/material';
+import { debounce } from 'lodash';
+import { useEffect, useMemo, useState } from 'react';
 
 interface SearchBarProps {
-  searchInput: string;
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onClear: () => void;
+  onSearch: (searchText: string) => void;
 }
 
-export const SearchBar = ({ searchInput, onChange, onClear }: SearchBarProps) => {
+export const SearchBar = ({ onSearch }: SearchBarProps) => {
+  const [searchInput, setSearchInput] = useState('');
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        onSearch(value);
+      }, 300),
+    [onSearch]
+  );
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setSearchInput(value);
+    debouncedSearch(value);
+  };
+
+  const handleClear = () => {
+    debouncedSearch.cancel();
+    setSearchInput('');
+    onSearch('');
+  };
+
   return (
     <Box sx={{ mb: 3 }}>
       <TextField
         fullWidth
         placeholder="Search highlights..."
         value={searchInput}
-        onChange={onChange}
+        onChange={handleChange}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
-            onClear();
+            handleClear();
           }
         }}
         slotProps={{
@@ -24,7 +53,7 @@ export const SearchBar = ({ searchInput, onChange, onClear }: SearchBarProps) =>
             endAdornment: searchInput && (
               <Box
                 component="span"
-                onClick={onClear}
+                onClick={handleClear}
                 sx={{
                   cursor: 'pointer',
                   color: 'text.secondary',

@@ -2,8 +2,7 @@ import { useGetBookDetailsApiV1BookBookIdGet } from '@/api/generated/books/books
 import { useSearchHighlightsApiV1HighlightsSearchGet } from '@/api/generated/highlights/highlights.ts';
 import { Alert, Box, Container, Typography } from '@mui/material';
 import { useParams } from '@tanstack/react-router';
-import { debounce } from 'lodash';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { SectionTitle } from '../common/SectionTitle';
 import { Spinner } from '../common/Spinner';
 import { BookTitle } from './components/BookTitle';
@@ -15,36 +14,18 @@ export const BookPage = () => {
   const { bookId } = useParams({ from: '/book/$bookId' });
   const { data: book, isLoading, isError } = useGetBookDetailsApiV1BookBookIdGet(Number(bookId));
 
-  // Search state
-  const [searchInput, setSearchInput] = useState('');
-  const [debouncedSearchText, setDebouncedSearchText] = useState('');
-
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((value: string) => {
-        setDebouncedSearchText(value);
-      }, 300),
-    []
-  );
-
-  // Cleanup debounced function on unmount
-  useEffect(() => {
-    return () => {
-      debouncedSearch.cancel();
-    };
-  }, [debouncedSearch]);
+  const [searchText, setSearchText] = useState('');
 
   // Search query - only enabled when there's search text
-  // Use a placeholder when empty to satisfy validation (query won't run due to enabled flag)
   const { data: searchResults, isLoading: isSearching } =
     useSearchHighlightsApiV1HighlightsSearchGet(
       {
-        searchText: debouncedSearchText || 'placeholder',
+        searchText: searchText || 'placeholder',
         bookId: Number(bookId),
       },
       {
         query: {
-          enabled: debouncedSearchText.length > 0,
+          enabled: searchText.length > 0,
         },
       }
     );
@@ -82,26 +63,12 @@ export const BookPage = () => {
     );
   }
 
-  const chapters = (book.chapters || []).filter(
+  const chapters = (book?.chapters || []).filter(
     (chapter) => chapter.highlights && chapter.highlights.length > 0
   );
 
-  // Handle search input change
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    setSearchInput(value);
-    debouncedSearch(value);
-  };
-
-  // Clear search
-  const handleClearSearch = () => {
-    debouncedSearch.cancel(); // Cancel any pending debounced search
-    setSearchInput('');
-    setDebouncedSearchText('');
-  };
-
   // Show search results or regular chapter view
-  const showSearchResults = debouncedSearchText.length > 0;
+  const showSearchResults = searchText.length > 0;
 
   return (
     <Box
@@ -114,18 +81,14 @@ export const BookPage = () => {
         <BookTitle book={book} highlightCount={totalHighlights} />
 
         {/* Search Bar */}
-        <SearchBar
-          searchInput={searchInput}
-          onChange={handleSearchChange}
-          onClear={handleClearSearch}
-        />
+        <SearchBar onSearch={setSearchText} />
 
         {/* Search Results */}
         {showSearchResults && (
           <SearchResults
             isSearching={isSearching}
             highlights={searchResults?.highlights}
-            searchText={debouncedSearchText}
+            searchText={searchText}
             bookId={book.id}
           />
         )}
