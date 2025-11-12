@@ -140,14 +140,9 @@ function CrossbillSync:performSync()
             isbn = isbn,
         }
 
-        -- Wait for KOReader to flush DocSettings to disk
-        -- This prevents the issue where highlights created immediately before sync
-        -- are not yet saved to the settings file
-        logger.dbg("Crossbill: Waiting for DocSettings to flush...")
-        socket.select(nil, nil, 0.5)  -- Wait 500ms
-
-        -- Get highlights
-        local highlights = self:getHighlights(doc_path)
+        -- Get highlights from memory (ReaderAnnotation) if available,
+        -- otherwise fall back to reading from DocSettings file
+        local highlights = self:getHighlightsFromMemory() or self:getHighlights(doc_path)
 
         if not highlights or #highlights == 0 then
             UIManager:show(InfoMessage:new{
@@ -195,6 +190,40 @@ function CrossbillSync:syncCurrentBook()
         -- WiFi already on, sync immediately
         self:performSync()
     end
+end
+
+function CrossbillSync:getHighlightsFromMemory()
+    -- Try to get highlights directly from ReaderAnnotation's memory
+    -- This avoids the issue where DocSettings hasn't been flushed to disk yet
+    if not self.ui.annotation then
+        logger.dbg("Crossbill: ReaderAnnotation module not available")
+        return nil
+    end
+
+    local annotations = self.ui.annotation.annotations
+    if not annotations or #annotations == 0 then
+        logger.dbg("Crossbill: No annotations in memory")
+        return nil
+    end
+
+    logger.dbg("Crossbill: Found", #annotations, "annotations in memory")
+    local results = {}
+
+    for _, annotation in ipairs(annotations) do
+        -- Only include highlights and notes, skip other annotation types
+        if annotation.text or annotation.note then
+            table.insert(results, {
+                text = annotation.text or "",
+                note = annotation.note or nil,
+                datetime = annotation.datetime or "",
+                page = annotation.pageno or annotation.page,
+                chapter = annotation.chapter or nil,
+            })
+        end
+    end
+
+    logger.dbg("Crossbill: Converted", #results, "annotations to highlights")
+    return results
 end
 
 function CrossbillSync:getHighlights(doc_path)
