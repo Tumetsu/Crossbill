@@ -126,7 +126,7 @@ export const BookCard = ({ book }: BookCardProps) => {
         <BookCover
           coverPath={book.cover}
           title={book.title}
-          width={120}
+          width="35%"
           height="100%"
           objectFit="cover"
           sx={{ flexShrink: 0 }}
