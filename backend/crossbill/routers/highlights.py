@@ -2,7 +2,7 @@
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, status
 
 from crossbill import schemas
 from crossbill.database import DatabaseSession
@@ -47,8 +47,9 @@ def get_books(
 @router.post(
     "/upload", response_model=schemas.HighlightUploadResponse, status_code=status.HTTP_200_OK
 )
-def upload_highlights(
+async def upload_highlights(
     request: schemas.HighlightUploadRequest,
+    background_tasks: BackgroundTasks,
     db: DatabaseSession,
 ) -> schemas.HighlightUploadResponse:
     """
@@ -69,7 +70,7 @@ def upload_highlights(
     """
     try:
         service = HighlightService(db)
-        return service.upload_highlights(request)
+        return service.upload_highlights(request, background_tasks)
     except Exception as e:
         logger.error(f"Failed to upload highlights: {e!s}", exc_info=True)
         raise HTTPException(
