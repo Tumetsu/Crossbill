@@ -140,6 +140,12 @@ function CrossbillSync:performSync()
             isbn = isbn,
         }
 
+        -- Wait for KOReader to flush DocSettings to disk
+        -- This prevents the issue where highlights created immediately before sync
+        -- are not yet saved to the settings file
+        logger.dbg("Crossbill: Waiting for DocSettings to flush...")
+        socket.select(nil, nil, 0.5)  -- Wait 500ms
+
         -- Get highlights
         local highlights = self:getHighlights(doc_path)
 
