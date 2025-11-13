@@ -6,19 +6,19 @@
  */
 
 export type SearchHighlightsApiV1HighlightsSearchGetParams = {
-/**
- * Text to search for in highlights
- * @minLength 1
- */
-searchText: string;
-/**
- * Optional book ID to filter results
- */
-bookId?: number | null;
-/**
- * Maximum number of results to return
- * @minimum 1
- * @maximum 500
- */
-limit?: number;
+  /**
+   * Text to search for in highlights
+   * @minLength 1
+   */
+  searchText: string;
+  /**
+   * Optional book ID to filter results
+   */
+  bookId?: number | null;
+  /**
+   * Maximum number of results to return
+   * @minimum 1
+   * @maximum 500
+   */
+  limit?: number;
 };

@@ -5,8 +5,8 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { BookWithHighlightCountAuthor } from './bookWithHighlightCountAuthor';
-import type { BookWithHighlightCountIsbn } from './bookWithHighlightCountIsbn';
 import type { BookWithHighlightCountCover } from './bookWithHighlightCountCover';
+import type { BookWithHighlightCountIsbn } from './bookWithHighlightCountIsbn';
 import type { TagInBook } from './tagInBook';
 
 /**

@@ -5,10 +5,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { HighlightChapter } from './highlightChapter';
-import type { HighlightChapterNumber } from './highlightChapterNumber';
-import type { HighlightPage } from './highlightPage';
-import type { HighlightNote } from './highlightNote';
 import type { HighlightChapterId } from './highlightChapterId';
+import type { HighlightChapterNumber } from './highlightChapterNumber';
+import type { HighlightNote } from './highlightNote';
+import type { HighlightPage } from './highlightPage';
 
 /**
  * Schema for Highlight response.

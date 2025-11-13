@@ -6,15 +6,15 @@
  */
 
 export type GetBooksApiV1HighlightsBooksGetParams = {
-/**
- * Number of books to skip
- * @minimum 0
- */
-offset?: number;
-/**
- * Maximum number of books to return
- * @minimum 1
- * @maximum 1000
- */
-limit?: number;
+  /**
+   * Number of books to skip
+   * @minimum 0
+   */
+  offset?: number;
+  /**
+   * Maximum number of books to return
+   * @minimum 1
+   * @maximum 1000
+   */
+  limit?: number;
 };

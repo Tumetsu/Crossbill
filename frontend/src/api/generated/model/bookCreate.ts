@@ -5,8 +5,8 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { BookCreateAuthor } from './bookCreateAuthor';
-import type { BookCreateIsbn } from './bookCreateIsbn';
 import type { BookCreateCover } from './bookCreateCover';
+import type { BookCreateIsbn } from './bookCreateIsbn';
 
 /**
  * Schema for creating a Book.

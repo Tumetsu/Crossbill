@@ -6,9 +6,6 @@ coverage
 # Dependencies
 node_modules
 
-# Generated files
-src/api/generated
-
 # Config files
 *.config.js
 *.config.ts

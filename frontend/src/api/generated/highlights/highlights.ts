@@ -4,10 +4,6 @@
  * crossbill API
  * OpenAPI spec version: 0.1.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -20,8 +16,9 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
+  UseQueryResult,
 } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import type {
   BooksListResponse,
@@ -30,13 +27,10 @@ import type {
   HighlightSearchResponse,
   HighlightUploadRequest,
   HighlightUploadResponse,
-  SearchHighlightsApiV1HighlightsSearchGetParams
+  SearchHighlightsApiV1HighlightsSearchGetParams,
 } from '.././model';
 
 import { axiosInstance } from '../../axios-instance';
-
-
-
 
 /**
  * Get all books with their highlight counts, sorted alphabetically by title.
@@ -54,94 +48,132 @@ Raises:
  * @summary Get Books
  */
 export const getBooksApiV1HighlightsBooksGet = (
-    params?: GetBooksApiV1HighlightsBooksGetParams,
- signal?: AbortSignal
+  params?: GetBooksApiV1HighlightsBooksGetParams,
+  signal?: AbortSignal
 ) => {
-      
-      
-      return axiosInstance<BooksListResponse>(
-      {url: `/api/v1/highlights/books`, method: 'GET',
-        params, signal
-    },
-      );
-    }
-  
+  return axiosInstance<BooksListResponse>({
+    url: `/api/v1/highlights/books`,
+    method: 'GET',
+    params,
+    signal,
+  });
+};
 
-
-
-export const getGetBooksApiV1HighlightsBooksGetQueryKey = (params?: GetBooksApiV1HighlightsBooksGetParams,) => {
-    return [
-    `/api/v1/highlights/books`, ...(params ? [params]: [])
-    ] as const;
-    }
-
-    
-export const getGetBooksApiV1HighlightsBooksGetQueryOptions = <TData = Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError = HTTPValidationError>(params?: GetBooksApiV1HighlightsBooksGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError, TData>>, }
+export const getGetBooksApiV1HighlightsBooksGetQueryKey = (
+  params?: GetBooksApiV1HighlightsBooksGetParams
 ) => {
+  return [`/api/v1/highlights/books`, ...(params ? [params] : [])] as const;
+};
 
-const {query: queryOptions} = options ?? {};
+export const getGetBooksApiV1HighlightsBooksGetQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>,
+  TError = HTTPValidationError,
+>(
+  params?: GetBooksApiV1HighlightsBooksGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError, TData>
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetBooksApiV1HighlightsBooksGetQueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getGetBooksApiV1HighlightsBooksGetQueryKey(params);
 
-  
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>> = ({
+    signal,
+  }) => getBooksApiV1HighlightsBooksGet(params, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>> = ({ signal }) => getBooksApiV1HighlightsBooksGet(params, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetBooksApiV1HighlightsBooksGetQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>
+>;
+export type GetBooksApiV1HighlightsBooksGetQueryError = HTTPValidationError;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetBooksApiV1HighlightsBooksGetQueryResult = NonNullable<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>>
-export type GetBooksApiV1HighlightsBooksGetQueryError = HTTPValidationError
-
-
-export function useGetBooksApiV1HighlightsBooksGet<TData = Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError = HTTPValidationError>(
- params: undefined |  GetBooksApiV1HighlightsBooksGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError, TData>> & Pick<
+export function useGetBooksApiV1HighlightsBooksGet<
+  TData = Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>,
+  TError = HTTPValidationError,
+>(
+  params: undefined | GetBooksApiV1HighlightsBooksGetParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>,
           TError,
           Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBooksApiV1HighlightsBooksGet<TData = Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError = HTTPValidationError>(
- params?: GetBooksApiV1HighlightsBooksGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetBooksApiV1HighlightsBooksGet<
+  TData = Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>,
+  TError = HTTPValidationError,
+>(
+  params?: GetBooksApiV1HighlightsBooksGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>,
           TError,
           Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBooksApiV1HighlightsBooksGet<TData = Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError = HTTPValidationError>(
- params?: GetBooksApiV1HighlightsBooksGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetBooksApiV1HighlightsBooksGet<
+  TData = Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>,
+  TError = HTTPValidationError,
+>(
+  params?: GetBooksApiV1HighlightsBooksGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Get Books
  */
 
-export function useGetBooksApiV1HighlightsBooksGet<TData = Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError = HTTPValidationError>(
- params?: GetBooksApiV1HighlightsBooksGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError, TData>>, }
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetBooksApiV1HighlightsBooksGet<
+  TData = Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>,
+  TError = HTTPValidationError,
+>(
+  params?: GetBooksApiV1HighlightsBooksGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBooksApiV1HighlightsBooksGet>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetBooksApiV1HighlightsBooksGetQueryOptions(params, options);
 
-  const queryOptions = getGetBooksApiV1HighlightsBooksGetQueryOptions(params,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Upload highlights from KOReader.
@@ -161,67 +193,86 @@ Raises:
  * @summary Upload Highlights
  */
 export const uploadHighlightsApiV1HighlightsUploadPost = (
-    highlightUploadRequest: HighlightUploadRequest,
- signal?: AbortSignal
+  highlightUploadRequest: HighlightUploadRequest,
+  signal?: AbortSignal
 ) => {
-      
-      
-      return axiosInstance<HighlightUploadResponse>(
-      {url: `/api/v1/highlights/upload`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: highlightUploadRequest, signal
-    },
-      );
-    }
-  
+  return axiosInstance<HighlightUploadResponse>({
+    url: `/api/v1/highlights/upload`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: highlightUploadRequest,
+    signal,
+  });
+};
 
+export const getUploadHighlightsApiV1HighlightsUploadPostMutationOptions = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>,
+    TError,
+    { data: HighlightUploadRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>,
+  TError,
+  { data: HighlightUploadRequest },
+  TContext
+> => {
+  const mutationKey = ['uploadHighlightsApiV1HighlightsUploadPost'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
-export const getUploadHighlightsApiV1HighlightsUploadPostMutationOptions = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>, TError,{data: HighlightUploadRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>, TError,{data: HighlightUploadRequest}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>,
+    { data: HighlightUploadRequest }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['uploadHighlightsApiV1HighlightsUploadPost'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
+    return uploadHighlightsApiV1HighlightsUploadPost(data);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type UploadHighlightsApiV1HighlightsUploadPostMutationResult = NonNullable<
+  Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>
+>;
+export type UploadHighlightsApiV1HighlightsUploadPostMutationBody = HighlightUploadRequest;
+export type UploadHighlightsApiV1HighlightsUploadPostMutationError = HTTPValidationError;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>, {data: HighlightUploadRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  uploadHighlightsApiV1HighlightsUploadPost(data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UploadHighlightsApiV1HighlightsUploadPostMutationResult = NonNullable<Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>>
-    export type UploadHighlightsApiV1HighlightsUploadPostMutationBody = HighlightUploadRequest
-    export type UploadHighlightsApiV1HighlightsUploadPostMutationError = HTTPValidationError
-
-    /**
+/**
  * @summary Upload Highlights
  */
-export const useUploadHighlightsApiV1HighlightsUploadPost = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>, TError,{data: HighlightUploadRequest}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>,
-        TError,
-        {data: HighlightUploadRequest},
-        TContext
-      > => {
+export const useUploadHighlightsApiV1HighlightsUploadPost = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>,
+      TError,
+      { data: HighlightUploadRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof uploadHighlightsApiV1HighlightsUploadPost>>,
+  TError,
+  { data: HighlightUploadRequest },
+  TContext
+> => {
+  const mutationOptions = getUploadHighlightsApiV1HighlightsUploadPostMutationOptions(options);
 
-      const mutationOptions = getUploadHighlightsApiV1HighlightsUploadPostMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Search for highlights using full-text search.
 
 Searches across all highlight text using PostgreSQL full-text search.
@@ -241,92 +292,150 @@ Raises:
  * @summary Search Highlights
  */
 export const searchHighlightsApiV1HighlightsSearchGet = (
-    params: SearchHighlightsApiV1HighlightsSearchGetParams,
- signal?: AbortSignal
+  params: SearchHighlightsApiV1HighlightsSearchGetParams,
+  signal?: AbortSignal
 ) => {
-      
-      
-      return axiosInstance<HighlightSearchResponse>(
-      {url: `/api/v1/highlights/search`, method: 'GET',
-        params, signal
-    },
-      );
-    }
-  
+  return axiosInstance<HighlightSearchResponse>({
+    url: `/api/v1/highlights/search`,
+    method: 'GET',
+    params,
+    signal,
+  });
+};
 
-
-
-export const getSearchHighlightsApiV1HighlightsSearchGetQueryKey = (params?: SearchHighlightsApiV1HighlightsSearchGetParams,) => {
-    return [
-    `/api/v1/highlights/search`, ...(params ? [params]: [])
-    ] as const;
-    }
-
-    
-export const getSearchHighlightsApiV1HighlightsSearchGetQueryOptions = <TData = Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>, TError = HTTPValidationError>(params: SearchHighlightsApiV1HighlightsSearchGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>, TError, TData>>, }
+export const getSearchHighlightsApiV1HighlightsSearchGetQueryKey = (
+  params?: SearchHighlightsApiV1HighlightsSearchGetParams
 ) => {
+  return [`/api/v1/highlights/search`, ...(params ? [params] : [])] as const;
+};
 
-const {query: queryOptions} = options ?? {};
+export const getSearchHighlightsApiV1HighlightsSearchGetQueryOptions = <
+  TData = Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
+  TError = HTTPValidationError,
+>(
+  params: SearchHighlightsApiV1HighlightsSearchGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
+        TError,
+        TData
+      >
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getSearchHighlightsApiV1HighlightsSearchGetQueryKey(params);
+  const queryKey =
+    queryOptions?.queryKey ?? getSearchHighlightsApiV1HighlightsSearchGetQueryKey(params);
 
-  
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>
+  > = ({ signal }) => searchHighlightsApiV1HighlightsSearchGet(params, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>> = ({ signal }) => searchHighlightsApiV1HighlightsSearchGet(params, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type SearchHighlightsApiV1HighlightsSearchGetQueryResult = NonNullable<
+  Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>
+>;
+export type SearchHighlightsApiV1HighlightsSearchGetQueryError = HTTPValidationError;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type SearchHighlightsApiV1HighlightsSearchGetQueryResult = NonNullable<Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>>
-export type SearchHighlightsApiV1HighlightsSearchGetQueryError = HTTPValidationError
-
-
-export function useSearchHighlightsApiV1HighlightsSearchGet<TData = Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>, TError = HTTPValidationError>(
- params: SearchHighlightsApiV1HighlightsSearchGetParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>, TError, TData>> & Pick<
+export function useSearchHighlightsApiV1HighlightsSearchGet<
+  TData = Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
+  TError = HTTPValidationError,
+>(
+  params: SearchHighlightsApiV1HighlightsSearchGetParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
           TError,
           Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearchHighlightsApiV1HighlightsSearchGet<TData = Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>, TError = HTTPValidationError>(
- params: SearchHighlightsApiV1HighlightsSearchGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useSearchHighlightsApiV1HighlightsSearchGet<
+  TData = Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
+  TError = HTTPValidationError,
+>(
+  params: SearchHighlightsApiV1HighlightsSearchGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
           TError,
           Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearchHighlightsApiV1HighlightsSearchGet<TData = Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>, TError = HTTPValidationError>(
- params: SearchHighlightsApiV1HighlightsSearchGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useSearchHighlightsApiV1HighlightsSearchGet<
+  TData = Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
+  TError = HTTPValidationError,
+>(
+  params: SearchHighlightsApiV1HighlightsSearchGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Search Highlights
  */
 
-export function useSearchHighlightsApiV1HighlightsSearchGet<TData = Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>, TError = HTTPValidationError>(
- params: SearchHighlightsApiV1HighlightsSearchGetParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>, TError, TData>>, }
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useSearchHighlightsApiV1HighlightsSearchGet<
+  TData = Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
+  TError = HTTPValidationError,
+>(
+  params: SearchHighlightsApiV1HighlightsSearchGetParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof searchHighlightsApiV1HighlightsSearchGet>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getSearchHighlightsApiV1HighlightsSearchGetQueryOptions(params, options);
 
-  const queryOptions = getSearchHighlightsApiV1HighlightsSearchGetQueryOptions(params,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
-

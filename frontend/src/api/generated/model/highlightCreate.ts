@@ -6,8 +6,8 @@
  */
 import type { HighlightCreateChapter } from './highlightCreateChapter';
 import type { HighlightCreateChapterNumber } from './highlightCreateChapterNumber';
-import type { HighlightCreatePage } from './highlightCreatePage';
 import type { HighlightCreateNote } from './highlightCreateNote';
+import type { HighlightCreatePage } from './highlightCreatePage';
 
 /**
  * Schema for creating a Highlight.

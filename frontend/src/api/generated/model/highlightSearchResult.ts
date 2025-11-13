@@ -4,12 +4,12 @@
  * crossbill API
  * OpenAPI spec version: 0.1.0
  */
-import type { HighlightSearchResultPage } from './highlightSearchResultPage';
-import type { HighlightSearchResultNote } from './highlightSearchResultNote';
 import type { HighlightSearchResultBookAuthor } from './highlightSearchResultBookAuthor';
 import type { HighlightSearchResultChapterId } from './highlightSearchResultChapterId';
 import type { HighlightSearchResultChapterName } from './highlightSearchResultChapterName';
 import type { HighlightSearchResultChapterNumber } from './highlightSearchResultChapterNumber';
+import type { HighlightSearchResultNote } from './highlightSearchResultNote';
+import type { HighlightSearchResultPage } from './highlightSearchResultPage';
 
 /**
  * Schema for highlight search result with book and chapter data.

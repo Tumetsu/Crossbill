@@ -5,10 +5,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { BookDetailsAuthor } from './bookDetailsAuthor';
-import type { BookDetailsIsbn } from './bookDetailsIsbn';
 import type { BookDetailsCover } from './bookDetailsCover';
-import type { TagInBook } from './tagInBook';
+import type { BookDetailsIsbn } from './bookDetailsIsbn';
 import type { ChapterWithHighlights } from './chapterWithHighlights';
+import type { TagInBook } from './tagInBook';
 
 /**
  * Schema for detailed Book response with chapters and highlights.

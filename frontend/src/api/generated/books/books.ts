@@ -4,10 +4,6 @@
  * crossbill API
  * OpenAPI spec version: 0.1.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -20,8 +16,9 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
+  UseQueryResult,
 } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import type {
   BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost,
@@ -31,13 +28,10 @@ import type {
   CoverUploadResponse,
   HTTPValidationError,
   HighlightDeleteRequest,
-  HighlightDeleteResponse
+  HighlightDeleteResponse,
 } from '.././model';
 
 import { axiosInstance } from '../../axios-instance';
-
-
-
 
 /**
  * Get detailed information about a book including its chapters and highlights.
@@ -53,94 +47,123 @@ Raises:
     HTTPException: If book is not found or fetching fails
  * @summary Get Book Details
  */
-export const getBookDetailsApiV1BookBookIdGet = (
-    bookId: number,
- signal?: AbortSignal
+export const getBookDetailsApiV1BookBookIdGet = (bookId: number, signal?: AbortSignal) => {
+  return axiosInstance<BookDetails>({ url: `/api/v1/book/${bookId}`, method: 'GET', signal });
+};
+
+export const getGetBookDetailsApiV1BookBookIdGetQueryKey = (bookId?: number) => {
+  return [`/api/v1/book/${bookId}`] as const;
+};
+
+export const getGetBookDetailsApiV1BookBookIdGetQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>,
+  TError = HTTPValidationError,
+>(
+  bookId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError, TData>
+    >;
+  }
 ) => {
-      
-      
-      return axiosInstance<BookDetails>(
-      {url: `/api/v1/book/${bookId}`, method: 'GET', signal
-    },
-      );
-    }
-  
+  const { query: queryOptions } = options ?? {};
 
+  const queryKey = queryOptions?.queryKey ?? getGetBookDetailsApiV1BookBookIdGetQueryKey(bookId);
 
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>> = ({
+    signal,
+  }) => getBookDetailsApiV1BookBookIdGet(bookId, signal);
 
-export const getGetBookDetailsApiV1BookBookIdGetQueryKey = (bookId?: number,) => {
-    return [
-    `/api/v1/book/${bookId}`
-    ] as const;
-    }
+  return { queryKey, queryFn, enabled: !!bookId, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    
-export const getGetBookDetailsApiV1BookBookIdGetQueryOptions = <TData = Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError = HTTPValidationError>(bookId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError, TData>>, }
-) => {
+export type GetBookDetailsApiV1BookBookIdGetQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>
+>;
+export type GetBookDetailsApiV1BookBookIdGetQueryError = HTTPValidationError;
 
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetBookDetailsApiV1BookBookIdGetQueryKey(bookId);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>> = ({ signal }) => getBookDetailsApiV1BookBookIdGet(bookId, signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(bookId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetBookDetailsApiV1BookBookIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>>
-export type GetBookDetailsApiV1BookBookIdGetQueryError = HTTPValidationError
-
-
-export function useGetBookDetailsApiV1BookBookIdGet<TData = Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError = HTTPValidationError>(
- bookId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError, TData>> & Pick<
+export function useGetBookDetailsApiV1BookBookIdGet<
+  TData = Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>,
+  TError = HTTPValidationError,
+>(
+  bookId: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>,
           TError,
           Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBookDetailsApiV1BookBookIdGet<TData = Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError = HTTPValidationError>(
- bookId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetBookDetailsApiV1BookBookIdGet<
+  TData = Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>,
+  TError = HTTPValidationError,
+>(
+  bookId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>,
           TError,
           Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetBookDetailsApiV1BookBookIdGet<TData = Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError = HTTPValidationError>(
- bookId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetBookDetailsApiV1BookBookIdGet<
+  TData = Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>,
+  TError = HTTPValidationError,
+>(
+  bookId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Get Book Details
  */
 
-export function useGetBookDetailsApiV1BookBookIdGet<TData = Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError = HTTPValidationError>(
- bookId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError, TData>>, }
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetBookDetailsApiV1BookBookIdGet<
+  TData = Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>,
+  TError = HTTPValidationError,
+>(
+  bookId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBookDetailsApiV1BookBookIdGet>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetBookDetailsApiV1BookBookIdGetQueryOptions(bookId, options);
 
-  const queryOptions = getGetBookDetailsApiV1BookBookIdGetQueryOptions(bookId,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Delete a book and all its contents (hard delete).
@@ -157,65 +180,78 @@ Raises:
     HTTPException: If book is not found or deletion fails
  * @summary Delete Book
  */
-export const deleteBookApiV1BookBookIdDelete = (
-    bookId: number,
- ) => {
-      
-      
-      return axiosInstance<void>(
-      {url: `/api/v1/book/${bookId}`, method: 'DELETE'
-    },
-      );
-    }
-  
+export const deleteBookApiV1BookBookIdDelete = (bookId: number) => {
+  return axiosInstance<void>({ url: `/api/v1/book/${bookId}`, method: 'DELETE' });
+};
 
+export const getDeleteBookApiV1BookBookIdDeleteMutationOptions = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>,
+    TError,
+    { bookId: number },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>,
+  TError,
+  { bookId: number },
+  TContext
+> => {
+  const mutationKey = ['deleteBookApiV1BookBookIdDelete'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
-export const getDeleteBookApiV1BookBookIdDeleteMutationOptions = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>, TError,{bookId: number}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>, TError,{bookId: number}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>,
+    { bookId: number }
+  > = (props) => {
+    const { bookId } = props ?? {};
 
-const mutationKey = ['deleteBookApiV1BookBookIdDelete'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
+    return deleteBookApiV1BookBookIdDelete(bookId);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type DeleteBookApiV1BookBookIdDeleteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>, {bookId: number}> = (props) => {
-          const {bookId} = props ?? {};
+export type DeleteBookApiV1BookBookIdDeleteMutationError = HTTPValidationError;
 
-          return  deleteBookApiV1BookBookIdDelete(bookId,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteBookApiV1BookBookIdDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>>
-    
-    export type DeleteBookApiV1BookBookIdDeleteMutationError = HTTPValidationError
-
-    /**
+/**
  * @summary Delete Book
  */
-export const useDeleteBookApiV1BookBookIdDelete = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>, TError,{bookId: number}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>,
-        TError,
-        {bookId: number},
-        TContext
-      > => {
+export const useDeleteBookApiV1BookBookIdDelete = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>,
+      TError,
+      { bookId: number },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteBookApiV1BookBookIdDelete>>,
+  TError,
+  { bookId: number },
+  TContext
+> => {
+  const mutationOptions = getDeleteBookApiV1BookBookIdDeleteMutationOptions(options);
 
-      const mutationOptions = getDeleteBookApiV1BookBookIdDeleteMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Update book information.
 
 Currently supports updating tags only. The tags will be replaced with the provided list.
@@ -233,68 +269,84 @@ Raises:
  * @summary Update Book
  */
 export const updateBookApiV1BookBookIdPost = (
-    bookId: number,
-    bookUpdateRequest: BookUpdateRequest,
- signal?: AbortSignal
+  bookId: number,
+  bookUpdateRequest: BookUpdateRequest,
+  signal?: AbortSignal
 ) => {
-      
-      
-      return axiosInstance<BookWithHighlightCount>(
-      {url: `/api/v1/book/${bookId}`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: bookUpdateRequest, signal
-    },
-      );
-    }
-  
+  return axiosInstance<BookWithHighlightCount>({
+    url: `/api/v1/book/${bookId}`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: bookUpdateRequest,
+    signal,
+  });
+};
 
+export const getUpdateBookApiV1BookBookIdPostMutationOptions = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>,
+    TError,
+    { bookId: number; data: BookUpdateRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>,
+  TError,
+  { bookId: number; data: BookUpdateRequest },
+  TContext
+> => {
+  const mutationKey = ['updateBookApiV1BookBookIdPost'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
-export const getUpdateBookApiV1BookBookIdPostMutationOptions = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>, TError,{bookId: number;data: BookUpdateRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>, TError,{bookId: number;data: BookUpdateRequest}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>,
+    { bookId: number; data: BookUpdateRequest }
+  > = (props) => {
+    const { bookId, data } = props ?? {};
 
-const mutationKey = ['updateBookApiV1BookBookIdPost'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
+    return updateBookApiV1BookBookIdPost(bookId, data);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type UpdateBookApiV1BookBookIdPostMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>
+>;
+export type UpdateBookApiV1BookBookIdPostMutationBody = BookUpdateRequest;
+export type UpdateBookApiV1BookBookIdPostMutationError = HTTPValidationError;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>, {bookId: number;data: BookUpdateRequest}> = (props) => {
-          const {bookId,data} = props ?? {};
-
-          return  updateBookApiV1BookBookIdPost(bookId,data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateBookApiV1BookBookIdPostMutationResult = NonNullable<Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>>
-    export type UpdateBookApiV1BookBookIdPostMutationBody = BookUpdateRequest
-    export type UpdateBookApiV1BookBookIdPostMutationError = HTTPValidationError
-
-    /**
+/**
  * @summary Update Book
  */
-export const useUpdateBookApiV1BookBookIdPost = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>, TError,{bookId: number;data: BookUpdateRequest}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>,
-        TError,
-        {bookId: number;data: BookUpdateRequest},
-        TContext
-      > => {
+export const useUpdateBookApiV1BookBookIdPost = <TError = HTTPValidationError, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>,
+      TError,
+      { bookId: number; data: BookUpdateRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateBookApiV1BookBookIdPost>>,
+  TError,
+  { bookId: number; data: BookUpdateRequest },
+  TContext
+> => {
+  const mutationOptions = getUpdateBookApiV1BookBookIdPostMutationOptions(options);
 
-      const mutationOptions = getUpdateBookApiV1BookBookIdPostMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Soft delete highlights from a book.
 
 This performs a soft delete by marking the highlights as deleted.
@@ -314,67 +366,85 @@ Raises:
  * @summary Delete Highlights
  */
 export const deleteHighlightsApiV1BookBookIdHighlightDelete = (
-    bookId: number,
-    highlightDeleteRequest: HighlightDeleteRequest,
- ) => {
-      
-      
-      return axiosInstance<HighlightDeleteResponse>(
-      {url: `/api/v1/book/${bookId}/highlight`, method: 'DELETE',
-      headers: {'Content-Type': 'application/json', },
-      data: highlightDeleteRequest
-    },
-      );
-    }
-  
+  bookId: number,
+  highlightDeleteRequest: HighlightDeleteRequest
+) => {
+  return axiosInstance<HighlightDeleteResponse>({
+    url: `/api/v1/book/${bookId}/highlight`,
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    data: highlightDeleteRequest,
+  });
+};
 
+export const getDeleteHighlightsApiV1BookBookIdHighlightDeleteMutationOptions = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>,
+    TError,
+    { bookId: number; data: HighlightDeleteRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>,
+  TError,
+  { bookId: number; data: HighlightDeleteRequest },
+  TContext
+> => {
+  const mutationKey = ['deleteHighlightsApiV1BookBookIdHighlightDelete'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
-export const getDeleteHighlightsApiV1BookBookIdHighlightDeleteMutationOptions = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>, TError,{bookId: number;data: HighlightDeleteRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>, TError,{bookId: number;data: HighlightDeleteRequest}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>,
+    { bookId: number; data: HighlightDeleteRequest }
+  > = (props) => {
+    const { bookId, data } = props ?? {};
 
-const mutationKey = ['deleteHighlightsApiV1BookBookIdHighlightDelete'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
+    return deleteHighlightsApiV1BookBookIdHighlightDelete(bookId, data);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type DeleteHighlightsApiV1BookBookIdHighlightDeleteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>
+>;
+export type DeleteHighlightsApiV1BookBookIdHighlightDeleteMutationBody = HighlightDeleteRequest;
+export type DeleteHighlightsApiV1BookBookIdHighlightDeleteMutationError = HTTPValidationError;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>, {bookId: number;data: HighlightDeleteRequest}> = (props) => {
-          const {bookId,data} = props ?? {};
-
-          return  deleteHighlightsApiV1BookBookIdHighlightDelete(bookId,data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteHighlightsApiV1BookBookIdHighlightDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>>
-    export type DeleteHighlightsApiV1BookBookIdHighlightDeleteMutationBody = HighlightDeleteRequest
-    export type DeleteHighlightsApiV1BookBookIdHighlightDeleteMutationError = HTTPValidationError
-
-    /**
+/**
  * @summary Delete Highlights
  */
-export const useDeleteHighlightsApiV1BookBookIdHighlightDelete = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>, TError,{bookId: number;data: HighlightDeleteRequest}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>,
-        TError,
-        {bookId: number;data: HighlightDeleteRequest},
-        TContext
-      > => {
+export const useDeleteHighlightsApiV1BookBookIdHighlightDelete = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>,
+      TError,
+      { bookId: number; data: HighlightDeleteRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteHighlightsApiV1BookBookIdHighlightDelete>>,
+  TError,
+  { bookId: number; data: HighlightDeleteRequest },
+  TContext
+> => {
+  const mutationOptions = getDeleteHighlightsApiV1BookBookIdHighlightDeleteMutationOptions(options);
 
-      const mutationOptions = getDeleteHighlightsApiV1BookBookIdHighlightDeleteMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Upload a book cover image.
 
 This endpoint accepts an uploaded image file and saves it as the book's cover.
@@ -394,67 +464,88 @@ Raises:
  * @summary Upload Book Cover
  */
 export const uploadBookCoverApiV1BookBookIdMetadataCoverPost = (
-    bookId: number,
-    bodyUploadBookCoverApiV1BookBookIdMetadataCoverPost: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost,
- signal?: AbortSignal
+  bookId: number,
+  bodyUploadBookCoverApiV1BookBookIdMetadataCoverPost: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost,
+  signal?: AbortSignal
 ) => {
-      
-      const formData = new FormData();
-formData.append(`cover`, bodyUploadBookCoverApiV1BookBookIdMetadataCoverPost.cover)
+  const formData = new FormData();
+  formData.append(`cover`, bodyUploadBookCoverApiV1BookBookIdMetadataCoverPost.cover);
 
-      return axiosInstance<CoverUploadResponse>(
-      {url: `/api/v1/book/${bookId}/metadata/cover`, method: 'POST',
-      headers: {'Content-Type': 'multipart/form-data', },
-       data: formData, signal
-    },
-      );
-    }
-  
+  return axiosInstance<CoverUploadResponse>({
+    url: `/api/v1/book/${bookId}/metadata/cover`,
+    method: 'POST',
+    headers: { 'Content-Type': 'multipart/form-data' },
+    data: formData,
+    signal,
+  });
+};
 
+export const getUploadBookCoverApiV1BookBookIdMetadataCoverPostMutationOptions = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>,
+    TError,
+    { bookId: number; data: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>,
+  TError,
+  { bookId: number; data: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost },
+  TContext
+> => {
+  const mutationKey = ['uploadBookCoverApiV1BookBookIdMetadataCoverPost'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
-export const getUploadBookCoverApiV1BookBookIdMetadataCoverPostMutationOptions = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>, TError,{bookId: number;data: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>, TError,{bookId: number;data: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>,
+    { bookId: number; data: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost }
+  > = (props) => {
+    const { bookId, data } = props ?? {};
 
-const mutationKey = ['uploadBookCoverApiV1BookBookIdMetadataCoverPost'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
+    return uploadBookCoverApiV1BookBookIdMetadataCoverPost(bookId, data);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type UploadBookCoverApiV1BookBookIdMetadataCoverPostMutationResult = NonNullable<
+  Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>
+>;
+export type UploadBookCoverApiV1BookBookIdMetadataCoverPostMutationBody =
+  BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost;
+export type UploadBookCoverApiV1BookBookIdMetadataCoverPostMutationError = HTTPValidationError;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>, {bookId: number;data: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost}> = (props) => {
-          const {bookId,data} = props ?? {};
-
-          return  uploadBookCoverApiV1BookBookIdMetadataCoverPost(bookId,data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UploadBookCoverApiV1BookBookIdMetadataCoverPostMutationResult = NonNullable<Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>>
-    export type UploadBookCoverApiV1BookBookIdMetadataCoverPostMutationBody = BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost
-    export type UploadBookCoverApiV1BookBookIdMetadataCoverPostMutationError = HTTPValidationError
-
-    /**
+/**
  * @summary Upload Book Cover
  */
-export const useUploadBookCoverApiV1BookBookIdMetadataCoverPost = <TError = HTTPValidationError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>, TError,{bookId: number;data: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>,
-        TError,
-        {bookId: number;data: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost},
-        TContext
-      > => {
+export const useUploadBookCoverApiV1BookBookIdMetadataCoverPost = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>,
+      TError,
+      { bookId: number; data: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof uploadBookCoverApiV1BookBookIdMetadataCoverPost>>,
+  TError,
+  { bookId: number; data: BodyUploadBookCoverApiV1BookBookIdMetadataCoverPost },
+  TContext
+> => {
+  const mutationOptions =
+    getUploadBookCoverApiV1BookBookIdMetadataCoverPostMutationOptions(options);
 
-      const mutationOptions = getUploadBookCoverApiV1BookBookIdMetadataCoverPostMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};
