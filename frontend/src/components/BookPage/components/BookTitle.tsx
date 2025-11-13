@@ -1,5 +1,5 @@
 import { BookmarkBorder as BookmarkIcon, Edit as EditIcon } from '@mui/icons-material';
-import { Box, Chip, IconButton, Typography } from '@mui/material';
+import { Box, Button, Chip, Typography } from '@mui/material';
 import { useState } from 'react';
 import type { BookDetails } from '../../../api/generated/model';
 import { BookCover } from '../../common/BookCover';
@@ -19,14 +19,28 @@ export const BookTitle = ({ book, highlightCount }: BookTitleProps) => {
 
   return (
     <>
-      <Box sx={{ mb: 4, display: 'flex', gap: 3, alignItems: 'flex-start' }}>
-        {/* Book Cover - Outside card, on the left */}
-        <Box sx={{ flexShrink: 0 }}>
+      <Box
+        sx={{
+          mb: 4,
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: { xs: 2, md: 3 },
+          alignItems: { xs: 'center', md: 'stretch' },
+        }}
+      >
+        {/* Book Cover */}
+        <Box
+          sx={{
+            flexShrink: 0,
+            width: { xs: 160, md: 200 },
+            height: { xs: 240, md: 280 },
+          }}
+        >
           <BookCover
             coverPath={book.cover}
             title={book.title}
-            height={280}
-            width={200}
+            height="100%"
+            width="100%"
             objectFit="cover"
             sx={{ boxShadow: 3, borderRadius: 1 }}
           />
@@ -38,29 +52,37 @@ export const BookTitle = ({ book, highlightCount }: BookTitleProps) => {
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
+            alignItems: { xs: 'center', md: 'flex-start' },
+            justifyContent: { xs: 'center', md: 'flex-start' },
+            textAlign: { xs: 'center', md: 'left' },
+            width: { xs: '100%', md: 'auto' },
+            position: 'relative',
           }}
         >
-          {/* Title with Edit Button */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+          {/* Title with Edit Button (Desktop only) */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: { xs: 'center', md: 'flex-start' },
+              gap: 1,
+              mb: 1,
+              width: '100%',
+            }}
+          >
             <Typography variant="h1" component="h1" sx={{ lineHeight: 1.3 }}>
               {book.title}
             </Typography>
-            <IconButton
-              onClick={handleEdit}
-              size="small"
-              sx={{
-                '&:hover': {
-                  bgcolor: 'action.hover',
-                },
-              }}
-            >
-              <EditIcon />
-            </IconButton>
           </Box>
 
           <Typography
             variant="h2"
-            sx={{ color: 'primary.main', fontWeight: 500, mb: 2 }}
+            sx={{
+              color: 'primary.main',
+              fontWeight: 500,
+              mb: { xs: 1, md: 2 },
+              width: '100%',
+            }}
             gutterBottom
           >
             {book.author || 'Unknown Author'}
@@ -70,8 +92,10 @@ export const BookTitle = ({ book, highlightCount }: BookTitleProps) => {
             sx={{
               display: 'flex',
               alignItems: 'center',
+              justifyContent: { xs: 'center', md: 'flex-start' },
               gap: 1,
               mb: book.tags && book.tags.length > 0 ? 2 : 0,
+              width: '100%',
             }}
           >
             <BookmarkIcon sx={{ fontSize: 18, color: 'primary.main' }} />
@@ -86,7 +110,9 @@ export const BookTitle = ({ book, highlightCount }: BookTitleProps) => {
               sx={{
                 display: 'flex',
                 flexWrap: 'wrap',
+                justifyContent: { xs: 'center', md: 'flex-start' },
                 gap: 1,
+                width: '100%',
               }}
             >
               {book.tags.map((tag) => (
@@ -100,6 +126,34 @@ export const BookTitle = ({ book, highlightCount }: BookTitleProps) => {
               ))}
             </Box>
           )}
+
+          <Button
+            variant="outlined"
+            startIcon={<EditIcon />}
+            onClick={handleEdit}
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              display: { xs: 'none', md: 'inline-flex' },
+            }}
+          >
+            Edit
+          </Button>
+
+          {/* Edit Button (Mobile only) */}
+          <Box
+            sx={{
+              display: { xs: 'flex', md: 'none' },
+              justifyContent: 'center',
+              mt: 2,
+              width: '100%',
+            }}
+          >
+            <Button variant="outlined" startIcon={<EditIcon />} onClick={handleEdit}>
+              Edit
+            </Button>
+          </Box>
         </Box>
       </Box>
 
