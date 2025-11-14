@@ -204,6 +204,42 @@ def update_book(
         ) from e
 
 
+@router.get(
+    "/{book_id}/highlight_tags",
+    response_model=schemas.HighlightTagsResponse,
+    status_code=status.HTTP_200_OK,
+)
+def get_highlight_tags(
+    book_id: int,
+    db: DatabaseSession,
+) -> schemas.HighlightTag:
+    """
+    Get all highlight tags for a book.
+
+    Args:
+        book_id: ID of the book
+        db: Database session
+
+    Returns:
+        List of HighlightTags for the book
+
+    Raises:
+        HTTPException: If book is not found
+    """
+    try:
+        service = HighlightTagService(db)
+        tags = service.get_tags_for_book(book_id)
+        return schemas.HighlightTagsResponse(tags=tags)
+    except CrossbillError:
+        # Re-raise custom exceptions - handled by exception handlers
+        raise
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
+
+
 @router.post(
     "/{book_id}/highlight_tag",
     response_model=schemas.HighlightTag,
@@ -289,7 +325,9 @@ def delete_highlight_tag(
         # Re-raise HTTPException
         raise
     except Exception as e:
-        logger.error(f"Failed to delete highlight tag {tag_id} for book {book_id}: {e!s}", exc_info=True)
+        logger.error(
+            f"Failed to delete highlight tag {tag_id} for book {book_id}: {e!s}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete highlight tag: {e!s}",

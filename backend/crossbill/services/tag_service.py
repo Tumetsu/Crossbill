@@ -44,9 +44,9 @@ class TagService:
         # Get or create tags
         tags = []
         for tag_name in tag_names:
-            tag_name = tag_name.strip()
-            if tag_name:  # Skip empty strings
-                tag = self.tag_repo.get_or_create(tag_name)
+            name = tag_name.strip()
+            if name:  # Skip empty strings
+                tag = self.tag_repo.get_or_create(name)
                 tags.append(tag)
 
         # Update book's tags

@@ -9,6 +9,7 @@ import type { HighlightChapterId } from './highlightChapterId';
 import type { HighlightChapterNumber } from './highlightChapterNumber';
 import type { HighlightNote } from './highlightNote';
 import type { HighlightPage } from './highlightPage';
+import type { HighlightTagInBook } from './highlightTagInBook';
 
 /**
  * Schema for Highlight response.
@@ -36,6 +37,8 @@ export interface Highlight {
   id: number;
   book_id: number;
   chapter_id: HighlightChapterId;
+  /** List of highlight tags for this highlight */
+  highlight_tags?: HighlightTagInBook[];
   created_at: string;
   updated_at: string;
 }

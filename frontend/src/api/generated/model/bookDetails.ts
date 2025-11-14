@@ -8,6 +8,7 @@ import type { BookDetailsAuthor } from './bookDetailsAuthor';
 import type { BookDetailsCover } from './bookDetailsCover';
 import type { BookDetailsIsbn } from './bookDetailsIsbn';
 import type { ChapterWithHighlights } from './chapterWithHighlights';
+import type { HighlightTagInBook } from './highlightTagInBook';
 import type { TagInBook } from './tagInBook';
 
 /**
@@ -21,6 +22,8 @@ export interface BookDetails {
   cover: BookDetailsCover;
   /** List of tags for this book */
   tags?: TagInBook[];
+  /** List of highlight tags for this book */
+  highlight_tags?: HighlightTagInBook[];
   /** List of chapters with highlights */
   chapters?: ChapterWithHighlights[];
   created_at: string;
