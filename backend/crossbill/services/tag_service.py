@@ -87,27 +87,25 @@ class TagService:
         if not book:
             raise ValueError(f"Book with id {book_id} not found")
 
-        # Get or create tags
-        tags = []
-        tag_ids = []
-        for tag_name in tag_names:
-            tag_name = tag_name.strip()
-            if tag_name:  # Skip empty strings
-                tag = self.tag_repo.get_or_create(tag_name)
-                tags.append(tag)
-                tag_ids.append(tag.id)
+        # Clean and filter tag names
+        cleaned_names = [name.strip() for name in tag_names if name.strip()]
 
-        # Add tags to book based on restore policy
-        for tag in tags:
-            if restore_soft_deleted:
-                # Always add/restore - used for UI updates
-                self.tag_repo.add_tag_to_book(book_id, tag.id)
-            else:
-                # Skip soft-deleted tags - used for external source syncing
-                if not self.tag_repo.is_tag_soft_deleted_for_book(book_id, tag.id):
-                    self.tag_repo.add_tag_to_book(book_id, tag.id)
+        if not cleaned_names:
+            # No tags to apply, just soft delete all existing tags
+            self.tag_repo.remove_all_tags_from_book_except(book_id, [])
+            self.db.flush()
+            self.db.refresh(book)
+            logger.info(f"Removed all tags from book {book_id}")
+            return book
 
-        # Soft delete tags not in the provided list
+        # Bulk get or create tags (1 query to fetch, 1 query to create missing)
+        tags = self.tag_repo.get_or_create_many(cleaned_names)
+        tag_ids = [tag.id for tag in tags]
+
+        # Bulk sync tags to book (1 query to fetch associations, up to 2 queries for update/insert)
+        self.tag_repo.sync_tags_to_book(book_id, tag_ids, restore_soft_deleted)
+
+        # Soft delete tags not in the provided list (1 query)
         self.tag_repo.remove_all_tags_from_book_except(book_id, tag_ids)
 
         self.db.flush()

@@ -44,6 +44,41 @@ class TagRepository:
             return tag
         return self.create(name)
 
+    def get_or_create_many(self, tag_names: list[str]) -> list[models.Tag]:
+        """
+        Get or create multiple tags in bulk.
+
+        This is much more efficient than calling get_or_create in a loop.
+
+        Args:
+            tag_names: List of tag names to get or create
+
+        Returns:
+            list[Tag]: List of tag objects
+        """
+        if not tag_names:
+            return []
+
+        # Fetch all existing tags in one query
+        stmt = select(models.Tag).where(models.Tag.name.in_(tag_names))
+        existing_tags = list(self.db.execute(stmt).scalars().all())
+        existing_names = {tag.name for tag in existing_tags}
+
+        # Determine which tags need to be created
+        missing_names = [name for name in tag_names if name not in existing_names]
+
+        # Bulk create missing tags
+        if missing_names:
+            new_tags = [models.Tag(name=name) for name in missing_names]
+            self.db.add_all(new_tags)
+            self.db.flush()
+            for tag in new_tags:
+                self.db.refresh(tag)
+            logger.info(f"Created {len(new_tags)} tags: {missing_names}")
+            existing_tags.extend(new_tags)
+
+        return existing_tags
+
     def get_all(self) -> list[models.Tag]:
         """Get all tags."""
         stmt = select(models.Tag).order_by(models.Tag.name)
@@ -94,6 +129,66 @@ class TagRepository:
             self.db.execute(insert_stmt)
             self.db.flush()
             logger.info(f"Added tag {tag_id} to book {book_id}")
+
+    def sync_tags_to_book(
+        self, book_id: int, tag_ids: list[int], restore_soft_deleted: bool = False
+    ) -> None:
+        """
+        Efficiently sync multiple tags to a book in bulk.
+
+        This method handles adding new tags and optionally restoring soft-deleted ones,
+        all in minimal database queries.
+
+        Args:
+            book_id: ID of the book
+            tag_ids: List of tag IDs to sync
+            restore_soft_deleted: If True, restore soft-deleted associations.
+                                 If False, skip them.
+        """
+        if not tag_ids:
+            return
+
+        # Get existing associations in one query
+        associations = self.get_book_tag_associations(book_id, tag_ids)
+
+        # Determine which tags to restore and which to create
+        to_restore = []
+        to_create = []
+
+        for tag_id in tag_ids:
+            if tag_id in associations:
+                # Association exists
+                if associations[tag_id]:  # is_soft_deleted
+                    if restore_soft_deleted:
+                        to_restore.append(tag_id)
+                # else: already active, nothing to do
+            else:
+                # Association doesn't exist, need to create
+                to_create.append(tag_id)
+
+        # Bulk restore soft-deleted associations
+        if to_restore:
+            update_stmt = (
+                update(models.book_tags)
+                .where(
+                    and_(
+                        models.book_tags.c.book_id == book_id,
+                        models.book_tags.c.tag_id.in_(to_restore),
+                    )
+                )
+                .values(deleted_at=None)
+            )
+            self.db.execute(update_stmt)
+            logger.info(f"Restored {len(to_restore)} soft-deleted tags for book {book_id}")
+
+        # Bulk create new associations
+        if to_create:
+            values = [{"book_id": book_id, "tag_id": tag_id} for tag_id in to_create]
+            insert_stmt = models.book_tags.insert().values(values)
+            self.db.execute(insert_stmt)
+            logger.info(f"Added {len(to_create)} new tags to book {book_id}")
+
+        self.db.flush()
 
     def soft_delete_tag_from_book(self, book_id: int, tag_id: int) -> bool:
         """
@@ -180,6 +275,31 @@ class TagRepository:
         if existing and existing.deleted_at is not None:
             return True
         return False
+
+    def get_book_tag_associations(self, book_id: int, tag_ids: list[int]) -> dict[int, bool]:
+        """
+        Get soft-deletion status for multiple tag associations in bulk.
+
+        Args:
+            book_id: ID of the book
+            tag_ids: List of tag IDs to check
+
+        Returns:
+            dict[int, bool]: Map of tag_id -> is_soft_deleted
+                           (only includes existing associations)
+        """
+        if not tag_ids:
+            return {}
+
+        stmt = select(models.book_tags).where(
+            and_(
+                models.book_tags.c.book_id == book_id,
+                models.book_tags.c.tag_id.in_(tag_ids),
+            )
+        )
+        associations = self.db.execute(stmt).fetchall()
+
+        return {assoc.tag_id: assoc.deleted_at is not None for assoc in associations}
 
     def remove_all_tags_from_book_except(self, book_id: int, tag_ids: list[int]) -> None:
         """
