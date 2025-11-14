@@ -1,7 +1,8 @@
+import type { BookDetails } from '@/api/generated/model';
+import { TagList } from '@/components/BookPage/components/TagList.tsx';
 import { BookmarkBorder as BookmarkIcon, Edit as EditIcon } from '@mui/icons-material';
-import { Box, Button, Chip, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { useState } from 'react';
-import type { BookDetails } from '../../../api/generated/model';
 import { BookCover } from '../../common/BookCover';
 import { BookEditModal } from './BookEditModal';
 
@@ -104,28 +105,7 @@ export const BookTitle = ({ book, highlightCount }: BookTitleProps) => {
             </Typography>
           </Box>
 
-          {/* Tags */}
-          {book.tags && book.tags.length > 0 && (
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: { xs: 'center', md: 'flex-start' },
-                gap: 1,
-                width: '100%',
-              }}
-            >
-              {book.tags.map((tag) => (
-                <Chip
-                  key={tag.id}
-                  label={tag.name}
-                  size="small"
-                  variant="outlined"
-                  sx={{ fontWeight: 500 }}
-                />
-              ))}
-            </Box>
-          )}
+          <TagList tags={book.tags} />
 
           <Button
             variant="outlined"

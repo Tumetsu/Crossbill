@@ -1,4 +1,5 @@
 import type { Highlight } from '@/api/generated/model';
+import { TagList } from '@/components/BookPage/components/TagList.tsx';
 import {
   CalendarMonth as CalendarIcon,
   ChevronRight as ChevronRightIcon,
@@ -25,6 +26,54 @@ export interface HighlightCardProps {
   highlight: Highlight;
   bookId: number;
 }
+
+interface FooterProps {
+  highlight: Highlight;
+}
+
+const Footer = ({ highlight }: FooterProps) => {
+  return (
+    <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          pl: 4.5,
+          opacity: 0.6,
+        }}
+      >
+        <CalendarIcon
+          sx={(theme) => ({
+            fontSize: 14,
+            color:
+              theme.palette.mode === 'light' ? `theme.palette.secondary.main` : 'secondary.light',
+          })}
+        />
+        <Typography
+          variant="caption"
+          sx={(theme) => ({
+            color:
+              theme.palette.mode === 'light' ? `theme.palette.secondary.main` : 'secondary.light',
+          })}
+        >
+          <span>
+            {new Date(highlight.datetime).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </span>
+          <span>{highlight.page && ` • Page ${highlight.page}`}</span>
+        </Typography>
+      </Box>
+
+      <Box>
+        <TagList tags={highlight.highlight_tags} />
+      </Box>
+    </Box>
+  );
+};
 
 const previewWordCount = 40;
 
@@ -191,42 +240,7 @@ export const HighlightCard = ({ highlight, bookId }: HighlightCardProps) => {
               </Typography>
             </Collapse>
 
-            {/* Date and Page */}
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                pl: 4.5,
-                opacity: 0.6,
-              }}
-            >
-              <CalendarIcon
-                sx={(theme) => ({
-                  fontSize: 14,
-                  color:
-                    theme.palette.mode === 'light'
-                      ? `theme.palette.secondary.main`
-                      : 'secondary.light',
-                })}
-              />
-              <Typography
-                variant="caption"
-                sx={(theme) => ({
-                  color:
-                    theme.palette.mode === 'light'
-                      ? `theme.palette.secondary.main`
-                      : 'secondary.light',
-                })}
-              >
-                {new Date(highlight.datetime).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-                {highlight.page && ` • Page ${highlight.page}`}
-              </Typography>
-            </Box>
+            <Footer highlight={highlight} />
           </Box>
 
           {isExpandable && (

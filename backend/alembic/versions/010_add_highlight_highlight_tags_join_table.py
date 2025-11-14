@@ -43,12 +43,26 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("highlight_id", "highlight_tag_id"),
     )
-    op.create_index(op.f("ix_highlight_highlight_tags_highlight_id"), "highlight_highlight_tags", ["highlight_id"], unique=False)
-    op.create_index(op.f("ix_highlight_highlight_tags_highlight_tag_id"), "highlight_highlight_tags", ["highlight_tag_id"], unique=False)
+    op.create_index(
+        op.f("ix_highlight_highlight_tags_highlight_id"),
+        "highlight_highlight_tags",
+        ["highlight_id"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_highlight_highlight_tags_highlight_tag_id"),
+        "highlight_highlight_tags",
+        ["highlight_tag_id"],
+        unique=False,
+    )
 
 
 def downgrade() -> None:
     """Drop highlight_highlight_tags join table."""
-    op.drop_index(op.f("ix_highlight_highlight_tags_highlight_tag_id"), table_name="highlight_highlight_tags")
-    op.drop_index(op.f("ix_highlight_highlight_tags_highlight_id"), table_name="highlight_highlight_tags")
+    op.drop_index(
+        op.f("ix_highlight_highlight_tags_highlight_tag_id"), table_name="highlight_highlight_tags"
+    )
+    op.drop_index(
+        op.f("ix_highlight_highlight_tags_highlight_id"), table_name="highlight_highlight_tags"
+    )
     op.drop_table("highlight_highlight_tags")

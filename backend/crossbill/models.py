@@ -2,19 +2,32 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table, Text, UniqueConstraint, func
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from crossbill.database import Base
 
-
 # Association table for many-to-many relationship between books and tags
 book_tags = Table(
     "book_tags",
     Base.metadata,
-    Column("book_id", Integer, ForeignKey("books.id", ondelete="CASCADE"), primary_key=True, index=True),
-    Column("tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True, index=True),
+    Column(
+        "book_id", Integer, ForeignKey("books.id", ondelete="CASCADE"), primary_key=True, index=True
+    ),
+    Column(
+        "tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True, index=True
+    ),
     Column(
         "created_at",
         DateTime(timezone=True),
@@ -28,8 +41,20 @@ book_tags = Table(
 highlight_highlight_tags = Table(
     "highlight_highlight_tags",
     Base.metadata,
-    Column("highlight_id", Integer, ForeignKey("highlights.id", ondelete="CASCADE"), primary_key=True, index=True),
-    Column("highlight_tag_id", Integer, ForeignKey("highlight_tags.id", ondelete="CASCADE"), primary_key=True, index=True),
+    Column(
+        "highlight_id",
+        Integer,
+        ForeignKey("highlights.id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    ),
+    Column(
+        "highlight_tag_id",
+        Integer,
+        ForeignKey("highlight_tags.id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    ),
     Column(
         "created_at",
         DateTime(timezone=True),

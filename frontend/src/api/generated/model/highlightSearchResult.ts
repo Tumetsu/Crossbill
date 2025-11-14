@@ -10,6 +10,7 @@ import type { HighlightSearchResultChapterName } from './highlightSearchResultCh
 import type { HighlightSearchResultChapterNumber } from './highlightSearchResultChapterNumber';
 import type { HighlightSearchResultNote } from './highlightSearchResultNote';
 import type { HighlightSearchResultPage } from './highlightSearchResultPage';
+import type { HighlightTagInBook } from './highlightTagInBook';
 
 /**
  * Schema for highlight search result with book and chapter data.
@@ -27,6 +28,8 @@ export interface HighlightSearchResult {
   chapter_name: HighlightSearchResultChapterName;
   /** Chapter order number from TOC */
   chapter_number?: HighlightSearchResultChapterNumber;
+  /** List of highlight tags for this highlight */
+  highlight_tags?: HighlightTagInBook[];
   created_at: string;
   updated_at: string;
 }
