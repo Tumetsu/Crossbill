@@ -52,12 +52,11 @@ class HighlightService:
         # Step 1: Get or create book
         book = self.book_repo.get_or_create(request.book)
 
-        # Step 1.5: Sync tags from KOReader (if provided)
-        # Important: Use sync_book_tags_from_source to prevent restoring tags
-        # that the user has explicitly removed from the book
+        # Step 1.5: Add tags from KOReader (if provided)
+        # This is an additive operation - only creates new tags, never modifies existing ones
         if request.book.tags:
-            self.tag_service.sync_book_tags_from_source(book.id, request.book.tags)
-            logger.info("synced_tags_from_koreader", book_id=book.id, tags=request.book.tags)
+            self.tag_service.add_tags_from_device(book.id, request.book.tags)
+            logger.info("added_tags_from_koreader", book_id=book.id, tags=request.book.tags)
 
         # Step 1.6: Schedule cover fetching as background task (non-blocking)
         # Cover is fetched asynchronously and won't block the response
