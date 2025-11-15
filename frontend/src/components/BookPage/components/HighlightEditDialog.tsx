@@ -171,10 +171,29 @@ export const HighlightEditDialog = ({
             <Typography variant="body2" color="text.secondary" gutterBottom>
               Highlight:
             </Typography>
-            <Typography variant="body1" sx={{ fontStyle: 'italic', pl: 2 }}>
-              "{highlight.text.substring(0, 200)}
-              {highlight.text.length > 200 ? '...' : ''}"
-            </Typography>
+            <Box
+              sx={{
+                mt: 1,
+                p: 2.5,
+                backgroundColor: 'action.hover',
+                borderRadius: 1,
+                borderLeft: 3,
+                borderColor: 'primary.main',
+              }}
+            >
+              <Typography
+                variant="body1"
+                sx={{
+                  fontSize: '1rem',
+                  lineHeight: 1.6,
+                  maxWidth: '65ch', // Optimal line length: ~65 characters
+                  color: 'text.primary',
+                  fontFamily: 'inherit',
+                }}
+              >
+                "{highlight.text}"
+              </Typography>
+            </Box>
           </Box>
 
           {/* Tag Input */}
