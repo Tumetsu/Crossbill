@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src import models
+from src.models import highlight_highlight_tags
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +32,19 @@ class HighlightTagRepository:
         return self.db.execute(stmt).scalar_one_or_none()
 
     def get_by_book_id(self, book_id: int) -> list[models.HighlightTag]:
-        """Get all highlight tags for a book."""
+        """
+        Get all highlight tags for a book that have at least one highlight associated.
+
+        Only returns tags that are currently in use (have highlights).
+        """
         stmt = (
             select(models.HighlightTag)
+            .join(
+                highlight_highlight_tags,
+                models.HighlightTag.id == highlight_highlight_tags.c.highlight_tag_id,
+            )
             .where(models.HighlightTag.book_id == book_id)
+            .distinct()
             .order_by(models.HighlightTag.name)
         )
         return list(self.db.execute(stmt).scalars().all())
