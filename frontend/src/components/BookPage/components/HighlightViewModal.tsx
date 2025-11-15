@@ -22,6 +22,8 @@ import {
   IconButton,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
@@ -42,6 +44,8 @@ export const HighlightViewModal = ({
   availableTags,
 }: HighlightViewModalProps) => {
   const queryClient = useQueryClient();
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [currentTags, setCurrentTags] = useState<HighlightTagInBook[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -188,7 +192,14 @@ export const HighlightViewModal = ({
   const isLoading = isProcessing || isDeleting;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="md"
+      fullWidth
+      fullScreen={fullScreen}
+      scroll="paper"
+    >
       <DialogTitle>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           View Highlight
