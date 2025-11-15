@@ -40,7 +40,7 @@ RUN uv export --no-dev --no-hashes --no-emit-project -o requirements.txt && \
     uv pip install --system --no-cache -r requirements.txt
 
 # Copy backend source code
-COPY backend/src ./crossbill
+COPY backend/src ./src
 COPY backend/alembic.ini ./
 COPY backend/alembic ./alembic
 
@@ -58,4 +58,4 @@ ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
 
 # Run database migrations and start uvicorn
-CMD ["sh", "-c", "alembic upgrade head && uvicorn crossbill.main:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port ${PORT}"]
