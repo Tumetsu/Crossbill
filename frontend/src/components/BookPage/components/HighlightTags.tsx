@@ -8,11 +8,34 @@ interface HighlightTagsProps {
   onTagClick: (tagId: number | null) => void;
 }
 
-export const HighlightTags = ({ tags, selectedTag, onTagClick }: HighlightTagsProps) => {
-  if (!tags || tags.length === 0) {
-    return null;
-  }
+const HighlightTagsHeading = ({
+  selectedTag,
+  onTagClick,
+}: {
+  onTagClick: HighlightTagsProps['onTagClick'];
+  selectedTag: HighlightTagsProps['selectedTag'];
+}) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <TagIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+      <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 600 }}>
+        Tags
+      </Typography>
+    </Box>
+    <IconButton
+      size="small"
+      onClick={() => onTagClick(null)}
+      title="Clear filter"
+      sx={{
+        visibility: selectedTag ? 'visible' : 'hidden',
+      }}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  </Box>
+);
 
+export const HighlightTags = ({ tags, selectedTag, onTagClick }: HighlightTagsProps) => {
   // Sort tags alphabetically
   const sortedTags = [...tags].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -23,43 +46,31 @@ export const HighlightTags = ({ tags, selectedTag, onTagClick }: HighlightTagsPr
         top: 24,
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <TagIcon sx={{ fontSize: 20, color: 'primary.main' }} />
-          <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 600 }}>
-            Tags
-          </Typography>
+      <HighlightTagsHeading selectedTag={selectedTag} onTagClick={onTagClick} />
+      {tags && tags.length > 0 ? (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          {sortedTags.map((tag) => (
+            <Chip
+              key={tag.id}
+              label={tag.name}
+              size="small"
+              variant={selectedTag === tag.id ? 'filled' : 'outlined'}
+              color={selectedTag === tag.id ? 'primary' : 'default'}
+              onClick={() => onTagClick(selectedTag === tag.id ? null : tag.id)}
+              sx={{
+                cursor: 'pointer',
+                '&:hover': {
+                  bgcolor: selectedTag === tag.id ? 'primary.dark' : 'action.hover',
+                },
+              }}
+            />
+          ))}
         </Box>
-        <IconButton
-          size="small"
-          onClick={() => onTagClick(null)}
-          title="Clear filter"
-          sx={{
-            visibility: selectedTag ? 'visible' : 'hidden',
-          }}
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </Box>
-
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-        {sortedTags.map((tag) => (
-          <Chip
-            key={tag.id}
-            label={tag.name}
-            size="small"
-            variant={selectedTag === tag.id ? 'filled' : 'outlined'}
-            color={selectedTag === tag.id ? 'primary' : 'default'}
-            onClick={() => onTagClick(selectedTag === tag.id ? null : tag.id)}
-            sx={{
-              cursor: 'pointer',
-              '&:hover': {
-                bgcolor: selectedTag === tag.id ? 'primary.dark' : 'action.hover',
-              },
-            }}
-          />
-        ))}
-      </Box>
+      ) : (
+        <Typography variant="body1" color="text.secondary">
+          No tagged highlights.
+        </Typography>
+      )}
     </Box>
   );
 };
