@@ -1,4 +1,5 @@
 import { Box } from '@mui/material';
+import { AnimatePresence } from 'motion/react';
 import type { BookWithHighlightCount } from '../../../api/generated/model';
 import { BookCard } from './BookCard';
 
@@ -21,9 +22,11 @@ export const BookList = ({ books }: BookListProps) => {
         justifyItems: 'start',
       }}
     >
-      {books.map((book) => (
-        <BookCard key={book.id} book={book} />
-      ))}
+      <AnimatePresence>
+        {books.map((book) => (
+          <BookCard key={book.id} book={book} />
+        ))}
+      </AnimatePresence>
     </Box>
   );
 };
