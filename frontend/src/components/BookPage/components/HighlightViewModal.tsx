@@ -6,27 +6,13 @@ import {
 import type { Highlight, HighlightTagInBook } from '@/api/generated/model';
 import {
   CalendarMonth as CalendarIcon,
-  Close as CloseIcon,
   Delete as DeleteIcon,
   FormatQuote as QuoteIcon,
 } from '@mui/icons-material';
-import {
-  Autocomplete,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  TextField,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Autocomplete, Box, Button, Chip, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { CommonDialog } from '../../common/CommonDialog';
 
 interface HighlightViewModalProps {
   highlight: Highlight;
@@ -44,8 +30,6 @@ export const HighlightViewModal = ({
   availableTags,
 }: HighlightViewModalProps) => {
   const queryClient = useQueryClient();
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [currentTags, setCurrentTags] = useState<HighlightTagInBook[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -193,131 +177,114 @@ export const HighlightViewModal = ({
   const isLoading = isProcessing || isDeleting;
 
   return (
-    <Dialog
+    <CommonDialog
       open={open}
       onClose={handleClose}
       maxWidth="md"
-      fullWidth
-      fullScreen={fullScreen}
-      scroll="paper"
-    >
-      <DialogTitle>
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          View Highlight
-          <IconButton
-            edge="end"
-            color="inherit"
-            onClick={handleClose}
-            aria-label="close"
+      isLoading={isLoading}
+      title="View Highlight"
+      footerActions={
+        <>
+          <Button
+            onClick={handleDelete}
+            color="error"
+            startIcon={<DeleteIcon />}
             disabled={isLoading}
           >
-            <CloseIcon />
-          </IconButton>
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
+          <Button onClick={handleClose} disabled={isLoading}>
+            Close
+          </Button>
+        </>
+      }
+    >
+      <Box display="flex" flexDirection="column" gap={3}>
+        {/* Highlight Text */}
+        <Box sx={{ display: 'flex', alignItems: 'start', gap: 2 }}>
+          <QuoteIcon
+            sx={{
+              fontSize: 28,
+              color: 'primary.main',
+              flexShrink: 0,
+              mt: 0.5,
+              opacity: 0.7,
+            }}
+          />
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 500,
+              color: 'text.primary',
+              lineHeight: 1.7,
+              fontSize: '1.25rem',
+            }}
+          >
+            {formattedText}
+          </Typography>
         </Box>
-      </DialogTitle>
 
-      <DialogContent dividers>
-        <Box display="flex" flexDirection="column" gap={3}>
-          {/* Highlight Text */}
-          <Box sx={{ display: 'flex', alignItems: 'start', gap: 2 }}>
-            <QuoteIcon
-              sx={{
-                fontSize: 28,
-                color: 'primary.main',
-                flexShrink: 0,
-                mt: 0.5,
-                opacity: 0.7,
-              }}
-            />
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 500,
-                color: 'text.primary',
-                lineHeight: 1.7,
-                fontSize: '1.25rem',
-              }}
-            >
-              {formattedText}
-            </Typography>
-          </Box>
+        {/* Metadata */}
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', opacity: 0.8 }}>
+          <CalendarIcon
+            sx={{
+              fontSize: 20,
+              color: 'text.secondary',
+            }}
+          />
+          <Typography variant="body2" color="text.secondary">
+            {new Date(highlight.datetime).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+            {highlight.page && ` • Page ${highlight.page}`}
+          </Typography>
+        </Box>
 
-          {/* Metadata */}
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', opacity: 0.8 }}>
-            <CalendarIcon
-              sx={{
-                fontSize: 20,
-                color: 'text.secondary',
-              }}
-            />
-            <Typography variant="body2" color="text.secondary">
-              {new Date(highlight.datetime).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-              {highlight.page && ` • Page ${highlight.page}`}
-            </Typography>
-          </Box>
-
-          {/* Tags */}
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              Tags
-            </Typography>
-            <Autocomplete
-              multiple
-              freeSolo
-              options={availableTags}
-              getOptionLabel={(option) => (typeof option === 'string' ? option : option.name)}
-              value={currentTags}
-              onChange={handleTagChange}
-              isOptionEqualToValue={(option, value) => {
-                if (typeof option === 'string' || typeof value === 'string') {
-                  return option === value;
-                }
-                return option.id === value.id;
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Add tags..."
-                  helperText="Press Enter to add a tag, click X to remove"
-                  disabled={isLoading}
-                />
-              )}
-              renderTags={(tagValue, getTagProps) =>
-                tagValue.map((option, index) => {
-                  const { key, ...tagProps } = getTagProps({ index });
-                  return (
-                    <Chip
-                      key={key}
-                      label={typeof option === 'string' ? option : option.name}
-                      {...tagProps}
-                      disabled={isLoading}
-                    />
-                  );
-                })
+        {/* Tags */}
+        <Box>
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            Tags
+          </Typography>
+          <Autocomplete
+            multiple
+            freeSolo
+            options={availableTags}
+            getOptionLabel={(option) => (typeof option === 'string' ? option : option.name)}
+            value={currentTags}
+            onChange={handleTagChange}
+            isOptionEqualToValue={(option, value) => {
+              if (typeof option === 'string' || typeof value === 'string') {
+                return option === value;
               }
-              disabled={isLoading}
-            />
-          </Box>
+              return option.id === value.id;
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Add tags..."
+                helperText="Press Enter to add a tag, click X to remove"
+                disabled={isLoading}
+              />
+            )}
+            renderTags={(tagValue, getTagProps) =>
+              tagValue.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return (
+                  <Chip
+                    key={key}
+                    label={typeof option === 'string' ? option : option.name}
+                    {...tagProps}
+                    disabled={isLoading}
+                  />
+                );
+              })
+            }
+            disabled={isLoading}
+          />
         </Box>
-      </DialogContent>
-
-      <DialogActions sx={{ justifyContent: 'space-between' }}>
-        <Button
-          onClick={handleDelete}
-          color="error"
-          startIcon={<DeleteIcon />}
-          disabled={isLoading}
-        >
-          {isDeleting ? 'Deleting...' : 'Delete'}
-        </Button>
-        <Button onClick={handleClose} disabled={isLoading}>
-          Close
-        </Button>
-      </DialogActions>
-    </Dialog>
+      </Box>
+    </CommonDialog>
   );
 };

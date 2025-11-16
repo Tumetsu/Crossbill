@@ -3,24 +3,14 @@ import {
   useUpdateBookApiV1BookBookIdPost,
 } from '@/api/generated/books/books.ts';
 import { BookWithHighlightCount } from '@/api/generated/model';
-import { Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Delete as DeleteIcon } from '@mui/icons-material';
+import { Box, Button, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { BookCover } from '../../common/BookCover';
+import { CommonDialog } from '../../common/CommonDialog';
 import { TagInput } from '../../common/TagInput';
 
 interface BookEditFormData {
@@ -36,8 +26,6 @@ interface BookEditModalProps {
 export const BookEditModal = ({ book, open, onClose }: BookEditModalProps) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const { control, handleSubmit, reset } = useForm<BookEditFormData>({
     defaultValues: {
       tags: book.tags?.map((tag) => tag.name) || [],
@@ -116,103 +104,86 @@ export const BookEditModal = ({ book, open, onClose }: BookEditModalProps) => {
   const error = updateBookMutation.error;
 
   return (
-    <Dialog
+    <CommonDialog
       open={open}
       onClose={onClose}
       maxWidth="sm"
-      fullWidth
-      fullScreen={fullScreen}
-      scroll="paper"
-    >
-      <DialogTitle>
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          Edit Book
-          <IconButton
-            edge="end"
-            color="inherit"
-            onClick={onClose}
-            aria-label="close"
-            disabled={isLoading}
-          >
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-
-      <DialogContent dividers>
-        <Box display="flex" flexDirection="column" gap={3}>
-          {/* Book Info Display */}
-          <Box
-            display="flex"
-            flexDirection={{ xs: 'column', sm: 'row' }}
-            gap={2}
-            alignItems={{ xs: 'center', sm: 'flex-start' }}
-          >
-            <BookCover
-              coverPath={book.cover}
-              title={book.title}
-              width="120px"
-              height="180px"
-              objectFit="cover"
-            />
-            <Box
-              flex={1}
-              sx={{ textAlign: { xs: 'center', sm: 'left' }, width: { xs: '100%', sm: 'auto' } }}
-            >
-              <Typography variant="h6" gutterBottom>
-                {book.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                {book.author || 'Unknown Author'}
-              </Typography>
-              {book.isbn && (
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  ISBN: {book.isbn}
-                </Typography>
-              )}
-              <Typography variant="body2" color="text.secondary">
-                {book.highlight_count} {book.highlight_count === 1 ? 'highlight' : 'highlights'}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Editable Tags Field */}
-          <Box>
-            <TagInput control={control} name="tags" disabled={isLoading} />
-          </Box>
-
-          {/* Error Message */}
-          {error && (
-            <Typography color="error" variant="body2">
-              Failed to update book
-            </Typography>
-          )}
-        </Box>
-      </DialogContent>
-
-      <DialogActions sx={{ justifyContent: 'space-between' }}>
-        <Button
-          onClick={handleDelete}
-          color="error"
-          startIcon={<DeleteIcon />}
-          disabled={isLoading}
-        >
-          {isDeleting ? 'Deleting...' : 'Delete'}
-        </Button>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button onClick={onClose} disabled={isLoading}>
-            Cancel
-          </Button>
+      isLoading={isLoading}
+      title="Edit Book"
+      footerActions={
+        <>
           <Button
-            onClick={handleSubmit(onSubmit)}
-            variant="contained"
+            onClick={handleDelete}
+            color="error"
+            startIcon={<DeleteIcon />}
             disabled={isLoading}
-            color="primary"
           >
-            {isSaving ? 'Saving...' : 'Save'}
+            {isDeleting ? 'Deleting...' : 'Delete'}
           </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button onClick={onClose} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit(onSubmit)}
+              variant="contained"
+              disabled={isLoading}
+              color="primary"
+            >
+              {isSaving ? 'Saving...' : 'Save'}
+            </Button>
+          </Box>
+        </>
+      }
+    >
+      <Box display="flex" flexDirection="column" gap={3}>
+        {/* Book Info Display */}
+        <Box
+          display="flex"
+          flexDirection={{ xs: 'column', sm: 'row' }}
+          gap={2}
+          alignItems={{ xs: 'center', sm: 'flex-start' }}
+        >
+          <BookCover
+            coverPath={book.cover}
+            title={book.title}
+            width="120px"
+            height="180px"
+            objectFit="cover"
+          />
+          <Box
+            flex={1}
+            sx={{ textAlign: { xs: 'center', sm: 'left' }, width: { xs: '100%', sm: 'auto' } }}
+          >
+            <Typography variant="h6" gutterBottom>
+              {book.title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              {book.author || 'Unknown Author'}
+            </Typography>
+            {book.isbn && (
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                ISBN: {book.isbn}
+              </Typography>
+            )}
+            <Typography variant="body2" color="text.secondary">
+              {book.highlight_count} {book.highlight_count === 1 ? 'highlight' : 'highlights'}
+            </Typography>
+          </Box>
         </Box>
-      </DialogActions>
-    </Dialog>
+
+        {/* Editable Tags Field */}
+        <Box>
+          <TagInput control={control} name="tags" disabled={isLoading} />
+        </Box>
+
+        {/* Error Message */}
+        {error && (
+          <Typography color="error" variant="body2">
+            Failed to update book
+          </Typography>
+        )}
+      </Box>
+    </CommonDialog>
   );
 };
