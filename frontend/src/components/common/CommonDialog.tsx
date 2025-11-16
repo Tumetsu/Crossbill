@@ -9,7 +9,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 interface CommonDialogProps {
   open: boolean;
@@ -41,6 +41,30 @@ export const CommonDialog = ({
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // Lock body scroll when dialog is open
+  useEffect(() => {
+    if (!open) return;
+
+    const scrollY = window.scrollY;
+
+    // Lock scroll by fixing body position
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
+    return () => {
+      // Restore body styles
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+
+      // Restore scroll position
+      window.scrollTo(0, scrollY);
+    };
+  }, [open]);
+
   return (
     <Dialog
       open={open}
@@ -49,11 +73,21 @@ export const CommonDialog = ({
       fullWidth
       fullScreen={fullScreen}
       scroll="paper"
+      disableScrollLock={true}
       slotProps={{
         backdrop: {
           sx: {
             // Prevent touch scrolling on backdrop
             touchAction: 'none',
+            // Ensure backdrop covers entire viewport including Safari UI
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            // Use height that accounts for iOS Safari address bar
+            height: '100dvh',
+            minHeight: '-webkit-fill-available',
           },
         },
       }}
@@ -61,12 +95,37 @@ export const CommonDialog = ({
         // Prevent overscroll behavior on mobile
         '& .MuiDialog-container': {
           overscrollBehavior: 'contain',
-          // Prevent touch scrolling from affecting content behind modal
-          touchAction: 'none',
+          // Ensure container covers full viewport on iOS
+          height: '100dvh',
+          minHeight: '-webkit-fill-available',
         },
         // Ensure dialog paper prevents touch scrolling propagation
         '& .MuiDialog-paper': {
           overscrollBehavior: 'contain',
+          // Prevent any layout shifts on iOS
+          position: 'relative',
+          // On fullscreen, ensure it fills the entire viewport
+          ...(fullScreen && {
+            height: '100dvh',
+            minHeight: '-webkit-fill-available',
+            maxHeight: '100dvh',
+          }),
+        },
+        // Enable smooth scrolling within dialog content on iOS
+        '& .MuiDialogContent-root': {
+          // iOS-specific smooth scrolling
+          WebkitOverflowScrolling: 'touch',
+          // Prevent overscroll bounce from propagating to body
+          overscrollBehavior: 'contain',
+          // Ensure content can scroll
+          touchAction: 'pan-y',
+        },
+        // Prevent touch events on header and footer from affecting body
+        '& .MuiDialogTitle-root': {
+          touchAction: 'none',
+        },
+        '& .MuiDialogActions-root': {
+          touchAction: 'none',
         },
       }}
     >
