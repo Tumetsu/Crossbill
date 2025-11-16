@@ -3,20 +3,11 @@ import {
   useRemoveTagFromHighlightApiV1BookBookIdHighlightHighlightIdTagTagIdDelete,
 } from '@/api/generated/books/books';
 import type { Highlight, HighlightTagInBook } from '@/api/generated/model';
-import { Close as CloseIcon, LocalOffer as TagIcon } from '@mui/icons-material';
-import {
-  Autocomplete,
-  Box,
-  Chip,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { LocalOffer as TagIcon } from '@mui/icons-material';
+import { Autocomplete, Box, Chip, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { CommonDialog } from '../../common/CommonDialog';
 
 interface HighlightTagInputProps {
   highlight: Highlight;
@@ -193,42 +184,34 @@ export const HighlightEditDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={1}>
-            <TagIcon />
-            <span>Manage Tags</span>
-          </Box>
-          <IconButton edge="end" color="inherit" onClick={handleClose} aria-label="close">
-            <CloseIcon />
-          </IconButton>
+    <CommonDialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      title={
+        <Box display="flex" alignItems="center" gap={1}>
+          <TagIcon />
+          <span>Manage Tags</span>
         </Box>
-      </DialogTitle>
-
-      <DialogContent dividers>
-        <Box display="flex" flexDirection="column" gap={3}>
-          {/* Highlight Preview */}
-          <Box>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Highlight:
-            </Typography>
-            <Typography variant="body1" sx={{ fontStyle: 'italic', pl: 2 }}>
-              "{highlight.text.substring(0, 200)}
-              {highlight.text.length > 200 ? '...' : ''}"
-            </Typography>
-          </Box>
-
-          {/* Tag Input */}
-          <Box>
-            <HighlightTagInput
-              highlight={highlight}
-              bookId={bookId}
-              availableTags={availableTags}
-            />
-          </Box>
+      }
+    >
+      <Box display="flex" flexDirection="column" gap={3}>
+        {/* Highlight Preview */}
+        <Box>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Highlight:
+          </Typography>
+          <Typography variant="body1" sx={{ fontStyle: 'italic', pl: 2 }}>
+            "{highlight.text.substring(0, 200)}
+            {highlight.text.length > 200 ? '...' : ''}"
+          </Typography>
         </Box>
-      </DialogContent>
-    </Dialog>
+
+        {/* Tag Input */}
+        <Box>
+          <HighlightTagInput highlight={highlight} bookId={bookId} availableTags={availableTags} />
+        </Box>
+      </Box>
+    </CommonDialog>
   );
 };
