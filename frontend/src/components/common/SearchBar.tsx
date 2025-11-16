@@ -5,10 +5,11 @@ import { useEffect, useMemo, useState } from 'react';
 interface SearchBarProps {
   onSearch: (searchText: string) => void;
   placeholder?: string;
+  initialValue?: string;
 }
 
-export const SearchBar = ({ onSearch, placeholder = 'Search...' }: SearchBarProps) => {
-  const [searchInput, setSearchInput] = useState('');
+export const SearchBar = ({ onSearch, placeholder = 'Search...', initialValue = '' }: SearchBarProps) => {
+  const [searchInput, setSearchInput] = useState(initialValue);
 
   const debouncedSearch = useMemo(
     () =>
@@ -17,6 +18,11 @@ export const SearchBar = ({ onSearch, placeholder = 'Search...' }: SearchBarProp
       }, 300),
     [onSearch]
   );
+
+  // Update search input when initialValue changes (e.g., browser back/forward)
+  useEffect(() => {
+    setSearchInput(initialValue);
+  }, [initialValue]);
 
   // Cleanup on unmount
   useEffect(() => {

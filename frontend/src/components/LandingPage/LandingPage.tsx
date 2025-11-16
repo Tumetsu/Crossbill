@@ -1,5 +1,5 @@
 import { Alert, Box, Container, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useGetBooksApiV1HighlightsBooksGet } from '../../api/generated/highlights/highlights';
 import { SearchBar } from '../common/SearchBar';
 import { SectionTitle } from '../common/SectionTitle';
@@ -7,10 +7,23 @@ import { Spinner } from '../common/Spinner';
 import { BookList } from './components/BookList';
 
 export const LandingPage = () => {
-  const [searchText, setSearchText] = useState('');
+  const navigate = useNavigate({ from: '/' });
+  const { search } = useSearch({ from: '/' });
+  const searchText = search || '';
+
   const { data, isLoading, isError } = useGetBooksApiV1HighlightsBooksGet({
     search: searchText || undefined,
   });
+
+  const handleSearch = (value: string) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        search: value || undefined,
+      }),
+      replace: true,
+    });
+  };
 
   return (
     <Container maxWidth="lg">
@@ -26,7 +39,11 @@ export const LandingPage = () => {
       <Box sx={{ mb: 4 }}>
         <SectionTitle showDivider>Books</SectionTitle>
 
-        <SearchBar onSearch={setSearchText} placeholder="Search books by title or author..." />
+        <SearchBar
+          onSearch={handleSearch}
+          placeholder="Search books by title or author..."
+          initialValue={searchText}
+        />
 
         {isLoading && <Spinner />}
 
