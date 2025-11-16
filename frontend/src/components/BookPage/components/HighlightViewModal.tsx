@@ -11,9 +11,21 @@ import {
   ArrowForward as ArrowForwardIcon,
   CalendarMonth as CalendarIcon,
   Delete as DeleteIcon,
+  ExpandMore as ExpandMoreIcon,
   FormatQuote as QuoteIcon,
 } from '@mui/icons-material';
-import { Autocomplete, Box, Button, Chip, IconButton, TextField, Typography } from '@mui/material';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Autocomplete,
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { CommonDialog } from '../../common/CommonDialog';
@@ -34,10 +46,12 @@ const HighlightNote = ({
   const queryClient = useQueryClient();
   const [noteText, setNoteText] = useState<string>(initialNote || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(!!initialNote);
 
   // Update note when initialNote changes
   useEffect(() => {
     setNoteText(initialNote || '');
+    setIsExpanded(!!initialNote);
   }, [initialNote]);
 
   const updateNoteMutation = useUpdateHighlightNoteApiV1HighlightsHighlightIdNotePost({
@@ -70,34 +84,70 @@ const HighlightNote = ({
   const isLoading = disabled || isSaving;
 
   return (
-    <Box>
-      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-        Note
-      </Typography>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'flex-start' }}>
-        <TextField
-          fullWidth
-          multiline
-          minRows={2}
-          maxRows={6}
-          value={noteText}
-          onChange={(e) => setNoteText(e.target.value)}
-          placeholder="Add a note about this highlight..."
-          disabled={isLoading}
-        />
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-          <Button
-            variant="text"
-            size={'small'}
-            onClick={handleSave}
-            disabled={isLoading || !hasChanges}
-            sx={{ flexShrink: 0, height: 'fit-content', mt: 0.5 }}
-          >
-            {isSaving ? 'Saving...' : 'Save'}
-          </Button>
+    <Accordion
+      expanded={isExpanded}
+      onChange={(_, expanded) => setIsExpanded(expanded)}
+      sx={{
+        backgroundColor: 'transparent',
+        boxShadow: 'none',
+        '&:before': { display: 'none' },
+        '&.Mui-expanded': { margin: 0 },
+      }}
+    >
+      <AccordionSummary
+        sx={{
+          minHeight: 'auto',
+          padding: 0,
+          '&.Mui-expanded': { minHeight: 'auto' },
+          '& .MuiAccordionSummary-content': {
+            margin: '8px 0',
+            '&.Mui-expanded': { margin: '8px 0' },
+          },
+          '& .MuiAccordionSummary-expandIconWrapper': {
+            display: 'none',
+          },
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography variant="subtitle2" color="text.secondary">
+            Note
+          </Typography>
+          <ExpandMoreIcon
+            sx={{
+              fontSize: 20,
+              color: 'text.secondary',
+              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s',
+            }}
+          />
         </Box>
-      </Box>
-    </Box>
+      </AccordionSummary>
+      <AccordionDetails sx={{ padding: 0, paddingTop: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'flex-start' }}>
+          <TextField
+            fullWidth
+            multiline
+            minRows={2}
+            maxRows={6}
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Add a note about this highlight..."
+            disabled={isLoading}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+            <Button
+              variant="text"
+              size={'small'}
+              onClick={handleSave}
+              disabled={isLoading || !hasChanges}
+              sx={{ flexShrink: 0, height: 'fit-content', mt: 0.5 }}
+            >
+              {isSaving ? 'Saving...' : 'Save'}
+            </Button>
+          </Box>
+        </Box>
+      </AccordionDetails>
+    </Accordion>
   );
 };
 
@@ -452,21 +502,19 @@ export const HighlightViewModal = ({
               </Box>
             </Box>
           </FadeInOut>
+          <TagInput
+            highlightId={highlight.id}
+            bookId={bookId}
+            initialTags={highlight.highlight_tags || []}
+            availableTags={availableTags}
+            disabled={isLoading}
+          />
           <HighlightNote
             highlightId={highlight.id}
             bookId={bookId}
             initialNote={highlight.note}
             disabled={isLoading}
           />
-          <Box sx={{ mt: -2 }}>
-            <TagInput
-              highlightId={highlight.id}
-              bookId={bookId}
-              initialTags={highlight.highlight_tags || []}
-              availableTags={availableTags}
-              disabled={isLoading}
-            />
-          </Box>
         </Box>
         {/* Next Button (Desktop) */}
         {hasNavigation && (
@@ -528,22 +576,19 @@ export const HighlightViewModal = ({
           </Typography>
         </Box>
 
+        <TagInput
+          highlightId={highlight.id}
+          bookId={bookId}
+          initialTags={highlight.highlight_tags || []}
+          availableTags={availableTags}
+          disabled={isLoading}
+        />
         <HighlightNote
           highlightId={highlight.id}
           bookId={bookId}
           initialNote={highlight.note}
           disabled={isLoading}
         />
-
-        <Box sx={{ mt: -2 }}>
-          <TagInput
-            highlightId={highlight.id}
-            bookId={bookId}
-            initialTags={highlight.highlight_tags || []}
-            availableTags={availableTags}
-            disabled={isLoading}
-          />
-        </Box>
 
         {/* Navigation Buttons (Mobile) */}
         {hasNavigation && (
