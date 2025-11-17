@@ -45,7 +45,6 @@ export const BookCard = ({ book }: BookCardProps) => {
               width={150}
               height={220}
               objectFit="cover"
-              className="book-cover"
               sx={{
                 boxShadow: 3,
                 borderRadius: 1,
