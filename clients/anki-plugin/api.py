@@ -155,7 +155,7 @@ class CrossbillAPI:
 
             chapter = ChapterWithHighlights(
                 id=chapter_data['id'],
-                book_id=chapter_data['book_id'],
+                book_id=data['id'],  # Use book ID from parent response
                 name=chapter_data['name'],
                 created_at=chapter_data['created_at'],
                 updated_at=chapter_data['updated_at'],
