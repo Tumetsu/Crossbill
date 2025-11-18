@@ -12,7 +12,7 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form';
 
 interface TagGroupFormData {
   tagGroups: Array<{
-    id?: number;
+    groupId?: number; // Database ID (renamed from 'id' to avoid conflict with RHF's internal id)
     name: string;
     isNew?: boolean;
   }>;
@@ -49,7 +49,7 @@ export const HighlightTagsModal = ({
   useEffect(() => {
     if (open) {
       const existingGroups = tagGroups.map((group) => ({
-        id: group.id,
+        groupId: group.id,
         name: group.name,
         isNew: false,
       }));
@@ -102,7 +102,7 @@ export const HighlightTagsModal = ({
 
     // Skip if value hasn't changed for existing groups
     if (!field.isNew) {
-      const originalGroup = tagGroups.find((g) => g.id === field.id);
+      const originalGroup = tagGroups.find((g) => g.id === field.groupId);
       if (originalGroup && originalGroup.name === trimmedValue) {
         return;
       }
@@ -121,8 +121,8 @@ export const HighlightTagsModal = ({
         name: trimmedValue,
       };
 
-      if (field.id !== undefined) {
-        requestData.id = field.id;
+      if (field.groupId !== undefined) {
+        requestData.id = field.groupId;
       }
 
       await createTagGroupMutation.mutateAsync({
@@ -154,9 +154,9 @@ export const HighlightTagsModal = ({
 
     setIsProcessing(true);
     try {
-      if (field.id) {
+      if (field.groupId) {
         await deleteTagGroupMutation.mutateAsync({
-          tagGroupId: field.id,
+          tagGroupId: field.groupId,
         });
         remove(index);
       }
