@@ -81,3 +81,97 @@ class HighlightTagRepository:
         self.db.flush()
         logger.info(f"Deleted highlight tag: {tag.name} (id={tag_id})")
         return True
+
+    def update(self, tag_id: int, **kwargs) -> models.HighlightTag | None:
+        """Update a highlight tag with the provided fields."""
+        tag = self.get_by_id(tag_id)
+        if not tag:
+            return None
+
+        for key, value in kwargs.items():
+            if hasattr(tag, key):
+                setattr(tag, key, value)
+
+        self.db.flush()
+        self.db.refresh(tag)
+        logger.info(f"Updated highlight tag: {tag.name} (id={tag_id})")
+        return tag
+
+    # HighlightTagGroup methods
+
+    def get_tag_group_by_id(self, tag_group_id: int) -> models.HighlightTagGroup | None:
+        """Get a highlight tag group by its ID."""
+        stmt = select(models.HighlightTagGroup).where(models.HighlightTagGroup.id == tag_group_id)
+        return self.db.execute(stmt).scalar_one_or_none()
+
+    def get_tag_group_by_book_and_name(
+        self, book_id: int, name: str
+    ) -> models.HighlightTagGroup | None:
+        """Get a highlight tag group by book ID and name."""
+        stmt = select(models.HighlightTagGroup).where(
+            models.HighlightTagGroup.book_id == book_id,
+            models.HighlightTagGroup.name == name,
+        )
+        return self.db.execute(stmt).scalar_one_or_none()
+
+    def get_tag_groups_by_book_id(self, book_id: int) -> list[models.HighlightTagGroup]:
+        """Get all highlight tag groups for a book."""
+        stmt = (
+            select(models.HighlightTagGroup)
+            .where(models.HighlightTagGroup.book_id == book_id)
+            .order_by(models.HighlightTagGroup.name)
+        )
+        return list(self.db.execute(stmt).scalars().all())
+
+    def create_tag_group(self, book_id: int, name: str) -> models.HighlightTagGroup:
+        """Create a new highlight tag group."""
+        tag_group = models.HighlightTagGroup(book_id=book_id, name=name)
+        self.db.add(tag_group)
+        self.db.flush()
+        self.db.refresh(tag_group)
+        logger.info(f"Created highlight tag group: {tag_group.name} (id={tag_group.id}, book_id={book_id})")
+        return tag_group
+
+    def update_tag_group(
+        self, tag_group_id: int, name: str
+    ) -> models.HighlightTagGroup | None:
+        """Update a highlight tag group's name."""
+        tag_group = self.get_tag_group_by_id(tag_group_id)
+        if not tag_group:
+            return None
+
+        tag_group.name = name
+        self.db.flush()
+        self.db.refresh(tag_group)
+        logger.info(f"Updated highlight tag group: {tag_group.name} (id={tag_group_id})")
+        return tag_group
+
+    def upsert_tag_group(
+        self, book_id: int, name: str, tag_group_id: int | None = None
+    ) -> models.HighlightTagGroup:
+        """Create a new tag group or update existing one."""
+        if tag_group_id:
+            # Update existing tag group
+            tag_group = self.update_tag_group(tag_group_id, name)
+            if tag_group:
+                return tag_group
+
+        # Check if a tag group with this name already exists
+        existing = self.get_tag_group_by_book_and_name(book_id, name)
+        if existing:
+            return existing
+
+        # Create new tag group
+        return self.create_tag_group(book_id, name)
+
+    def delete_tag_group(self, tag_group_id: int) -> bool:
+        """Delete a highlight tag group by ID."""
+        tag_group = self.get_tag_group_by_id(tag_group_id)
+        if not tag_group:
+            return False
+
+        # Tags' foreign keys will be set to NULL due to ondelete="SET NULL"
+        self.db.delete(tag_group)
+        self.db.flush()
+        logger.info(f"Deleted highlight tag group: {tag_group.name} (id={tag_group_id})")
+        return True
