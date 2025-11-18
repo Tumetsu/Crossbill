@@ -98,7 +98,7 @@ class Book(Base):
         back_populates="book", cascade="all, delete-orphan"
     )
     highlight_tag_groups: Mapped[list["HighlightTagGroup"]] = relationship(
-        back_populates="book", cascade="all, delete-orphan"
+        back_populates="book", cascade="all, delete-orphan", lazy="selectin"
     )
 
     def __repr__(self) -> str:

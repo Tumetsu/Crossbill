@@ -94,6 +94,7 @@ class BookService:
             cover=book.cover,
             tags=book.tags,  # Tags are automatically loaded via lazy="selectin"
             highlight_tags=highlight_tags,  # Only tags with active highlight associations
+            highlight_tag_groups=book.highlight_tag_groups,  # Tag groups are automatically loaded via lazy="selectin"
             chapters=chapters_with_highlights,
             created_at=book.created_at,
             updated_at=book.updated_at,
