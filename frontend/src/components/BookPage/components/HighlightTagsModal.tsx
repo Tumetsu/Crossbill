@@ -7,6 +7,7 @@ import { CommonDialog } from '@/components/common/CommonDialog';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import { Box, Button, IconButton, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import { sortBy } from 'lodash';
 import { useEffect, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 
@@ -59,11 +60,14 @@ export const HighlightTagsModal = ({
   // Initialize form with existing tag groups and add an empty field
   useEffect(() => {
     if (open) {
-      const existingGroups = tagGroups.map((group) => ({
-        groupId: group.id,
-        name: group.name,
-        isNew: false,
-      }));
+      const existingGroups = sortBy(
+        tagGroups.map((group) => ({
+          groupId: group.id,
+          name: group.name,
+          isNew: false,
+        })),
+        'name'
+      );
       reset({
         tagGroups: [...existingGroups, { name: '', isNew: true }],
       });
