@@ -20,6 +20,7 @@ import {
 } from '@mui/icons-material';
 import { Box, Chip, IconButton, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import { sortBy } from 'lodash';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { HighlightTagsModal } from './HighlightTagsModal';
@@ -271,10 +272,13 @@ export const HighlightTags = ({
 
   // Group tags by tag_group_id
   const ungroupedTags = sortedTags.filter((tag) => !tag.tag_group_id);
-  const groupedTags = tagGroups.map((group) => ({
-    group,
-    tags: sortedTags.filter((tag) => tag.tag_group_id === group.id),
-  }));
+  const groupedTags = sortBy(
+    tagGroups.map((group) => ({
+      group,
+      tags: sortedTags.filter((tag) => tag.tag_group_id === group.id),
+    })),
+    'group.name'
+  );
 
   const handleDragStart = (event: DragStartEvent) => {
     const tag = event.active.data.current?.tag;
