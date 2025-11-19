@@ -203,11 +203,6 @@ export const HighlightTagsModal = ({
       return;
     }
 
-    // Confirm deletion
-    if (!confirm(`Are you sure you want to delete the tag group "${field.name}"?`)) {
-      return;
-    }
-
     setIsProcessing(true);
     try {
       if (field.groupId) {
