@@ -3,7 +3,10 @@ import { useSearchHighlightsApiV1HighlightsSearchGet } from '@/api/generated/hig
 import { FadeInOut } from '@/components/common/animations/FadeInOut.tsx';
 import { Alert, Box, Container, Typography } from '@mui/material';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { PullToRefreshIndicator } from '@/components/common/PullToRefreshIndicator';
 import { SearchBar } from '../common/SearchBar';
 import { SectionTitle } from '../common/SectionTitle';
 import { Spinner } from '../common/Spinner';
@@ -15,12 +18,30 @@ import { SearchResults } from './components/SearchResults';
 export const BookPage = () => {
   const { bookId } = useParams({ from: '/book/$bookId' });
   const { search, tagId } = useSearch({ from: '/book/$bookId' });
+  const queryClient = useQueryClient();
   const { data: book, isLoading, isError } = useGetBookDetailsApiV1BookBookIdGet(Number(bookId));
 
   const navigate = useNavigate({ from: '/book/$bookId' });
   const searchText = search || '';
 
   const [selectedTagId, setSelectedTagId] = useState<number | undefined>(tagId);
+
+  // Pull to refresh handler
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ['getBookDetails', Number(bookId)],
+    });
+    if (searchText.length > 0) {
+      await queryClient.invalidateQueries({
+        queryKey: ['searchHighlights'],
+      });
+    }
+  };
+
+  // Initialize pull-to-refresh
+  const pullToRefreshState = usePullToRefresh({
+    onRefresh: handleRefresh,
+  });
 
   const handleSearch = (value: string) => {
     navigate({
@@ -61,31 +82,37 @@ export const BookPage = () => {
 
   if (isLoading) {
     return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-        }}
-      >
-        <Container maxWidth="lg">
-          <Spinner />
-        </Container>
-      </Box>
+      <>
+        <PullToRefreshIndicator {...pullToRefreshState} />
+        <Box
+          sx={{
+            minHeight: '100vh',
+          }}
+        >
+          <Container maxWidth="lg">
+            <Spinner />
+          </Container>
+        </Box>
+      </>
     );
   }
 
   if (isError || !book) {
     return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-        }}
-      >
-        <Container maxWidth="lg">
-          <Box sx={{ pt: 4 }}>
-            <Alert severity="error">Failed to load book details. Please try again later.</Alert>
-          </Box>
-        </Container>
-      </Box>
+      <>
+        <PullToRefreshIndicator {...pullToRefreshState} />
+        <Box
+          sx={{
+            minHeight: '100vh',
+          }}
+        >
+          <Container maxWidth="lg">
+            <Box sx={{ pt: 4 }}>
+              <Alert severity="error">Failed to load book details. Please try again later.</Alert>
+            </Box>
+          </Container>
+        </Box>
+      </>
     );
   }
 
@@ -119,12 +146,14 @@ export const BookPage = () => {
   const showSearchResults = searchText.length > 0;
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-      }}
-    >
-      <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 }, py: 4 }}>
+    <>
+      <PullToRefreshIndicator {...pullToRefreshState} />
+      <Box
+        sx={{
+          minHeight: '100vh',
+        }}
+      >
+        <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 }, py: 4 }}>
         {/* Book Info Card */}
         <BookTitle book={book} highlightCount={totalHighlights} />
 
@@ -249,7 +278,8 @@ export const BookPage = () => {
             </Box>
           </Box>
         )}
-      </Container>
-    </Box>
+        </Container>
+      </Box>
+    </>
   );
 };

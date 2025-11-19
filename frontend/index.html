@@ -28,6 +28,18 @@
     />
 
     <title>Crossbill</title>
+
+    <!-- iOS Standalone PWA Styles -->
+    <style>
+      /* Prevent overscroll bounce on iOS PWA to enable custom pull-to-refresh */
+      @media (display-mode: standalone) {
+        html,
+        body {
+          overscroll-behavior: none;
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
