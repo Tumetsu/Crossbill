@@ -19,6 +19,7 @@ interface CommonDialogProps {
   footerActions?: ReactNode;
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   isLoading?: boolean;
+  headerElement?: ReactNode;
 }
 
 /**
@@ -37,6 +38,7 @@ export const CommonDialog = ({
   footerActions,
   maxWidth = 'sm',
   isLoading = false,
+  headerElement,
 }: CommonDialogProps) => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -144,7 +146,22 @@ export const CommonDialog = ({
         </Box>
       </DialogTitle>
 
-      <DialogContent dividers>{children}</DialogContent>
+      <DialogContent dividers sx={{ pt: 0, px: 0 }}>
+        {headerElement && (
+          <Box
+            sx={{
+              width: '100%',
+              px: 0,
+              pt: 0,
+              pb: 0,
+              mb: 3,
+            }}
+          >
+            {headerElement}
+          </Box>
+        )}
+        <Box sx={{ px: 3 }}>{children}</Box>
+      </DialogContent>
 
       {footerActions && (
         <DialogActions
