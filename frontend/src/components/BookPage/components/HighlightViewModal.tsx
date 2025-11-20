@@ -283,6 +283,38 @@ const TagInput = ({
   );
 };
 
+interface ProgressBarProps {
+  currentIndex: number;
+  totalCount: number;
+}
+
+const ProgressBar = ({ currentIndex, totalCount }: ProgressBarProps) => {
+  const progressPercentage = ((currentIndex + 1) / totalCount) * 100;
+
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: '4px',
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        overflow: 'hidden',
+        mt: 0,
+      }}
+    >
+      <motion.div
+        style={{
+          height: '100%',
+          backgroundColor: '#43311E', // primary.main (amber.700)
+          transformOrigin: 'left',
+        }}
+        initial={{ width: `${progressPercentage}%` }}
+        animate={{ width: `${progressPercentage}%` }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+      />
+    </Box>
+  );
+};
+
 interface ToolbarProps {
   highlightId: number;
   bookId: number;
@@ -571,6 +603,11 @@ export const HighlightViewModal = ({
       maxWidth="md"
       isLoading={isLoading}
       title={title}
+      headerElement={
+        hasNavigation && allHighlights ? (
+          <ProgressBar currentIndex={currentIndex} totalCount={allHighlights.length} />
+        ) : undefined
+      }
       footerActions={
         <Button onClick={handleClose} disabled={isLoading}>
           Close
