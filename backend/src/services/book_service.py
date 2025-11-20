@@ -26,6 +26,7 @@ class BookService:
         self.chapter_repo = repositories.ChapterRepository(db)
         self.highlight_repo = repositories.HighlightRepository(db)
         self.highlight_tag_repo = repositories.HighlightTagRepository(db)
+        self.bookmark_repo = repositories.BookmarkRepository(db)
 
     def get_book_details(self, book_id: int) -> schemas.BookDetails:
         """
@@ -85,6 +86,10 @@ class BookService:
             )
             chapters_with_highlights.append(chapter_with_highlights)
 
+        # Get bookmarks for the book
+        bookmarks = self.bookmark_repo.get_by_book_id(book_id)
+        bookmark_schemas = [schemas.Bookmark.model_validate(b) for b in bookmarks]
+
         # Create and return the response
         return schemas.BookDetails(
             id=book.id,
@@ -95,6 +100,7 @@ class BookService:
             tags=book.tags,  # Tags are automatically loaded via lazy="selectin"
             highlight_tags=highlight_tags,  # Only tags with active highlight associations
             highlight_tag_groups=book.highlight_tag_groups,  # Tag groups are automatically loaded via lazy="selectin"
+            bookmarks=bookmark_schemas,
             chapters=chapters_with_highlights,
             created_at=book.created_at,
             updated_at=book.updated_at,
