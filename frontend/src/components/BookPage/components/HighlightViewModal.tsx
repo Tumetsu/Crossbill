@@ -28,6 +28,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useState } from 'react';
 import { useSwipeable } from 'react-swipeable';
 import { CommonDialog } from '../../common/CommonDialog';
@@ -85,39 +86,47 @@ const HighlightNote = ({
   const hasChanges = (noteText.trim() || null) !== (initialNote || null);
   const isLoading = disabled || isSaving;
 
-  if (!visible) {
-    return null;
-  }
-
   return (
-    <Box>
-      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-        Note
-      </Typography>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'flex-start' }}>
-        <TextField
-          fullWidth
-          multiline
-          minRows={2}
-          maxRows={6}
-          value={noteText}
-          onChange={(e) => setNoteText(e.target.value)}
-          placeholder="Add a note about this highlight..."
-          disabled={isLoading}
-        />
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-          <Button
-            variant="text"
-            size={'small'}
-            onClick={handleSave}
-            disabled={isLoading || !hasChanges}
-            sx={{ flexShrink: 0, height: 'fit-content', mt: 0.5 }}
-          >
-            {isSaving ? 'Saving...' : 'Save'}
-          </Button>
-        </Box>
-      </Box>
-    </Box>
+    <AnimatePresence initial={false}>
+      {visible && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
+          style={{ overflow: 'hidden' }}
+        >
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              Note
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'flex-start' }}>
+              <TextField
+                fullWidth
+                multiline
+                minRows={2}
+                maxRows={6}
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                placeholder="Add a note about this highlight..."
+                disabled={isLoading}
+              />
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                <Button
+                  variant="text"
+                  size={'small'}
+                  onClick={handleSave}
+                  disabled={isLoading || !hasChanges}
+                  sx={{ flexShrink: 0, height: 'fit-content', mt: 0.5 }}
+                >
+                  {isSaving ? 'Saving...' : 'Save'}
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

@@ -1,7 +1,9 @@
 import type { Bookmark, Highlight } from '@/api/generated/model';
 import { SectionTitle } from '@/components/common/SectionTitle';
-import { Bookmark as BookmarkIcon } from '@mui/icons-material';
-import { Box, Typography } from '@mui/material';
+import { Bookmark as BookmarkIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import { Box, IconButton, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { AnimatePresence, motion } from 'motion/react';
+import { useEffect, useState } from 'react';
 
 interface BookmarkListProps {
   bookmarks: Bookmark[];
@@ -10,6 +12,15 @@ interface BookmarkListProps {
 }
 
 export const BookmarkList = ({ bookmarks, allHighlights, onBookmarkClick }: BookmarkListProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  // Collapse by default on mobile
+  useEffect(() => {
+    setIsExpanded(!isMobile);
+  }, [isMobile]);
+
   // If no bookmarks, don't render anything
   if (!bookmarks || bookmarks.length === 0) {
     return null;
@@ -42,74 +53,112 @@ export const BookmarkList = ({ bookmarks, allHighlights, onBookmarkClick }: Book
 
   return (
     <Box>
-      <SectionTitle>Bookmarks</SectionTitle>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-        {bookmarkedHighlights.map(({ bookmark, highlight }) => {
-          if (!highlight) return null;
-
-          const startsWithLowercase =
-            highlight.text.length > 0 &&
-            highlight.text[0] === highlight.text[0].toLowerCase() &&
-            highlight.text[0] !== highlight.text[0].toUpperCase();
-
-          const prefix = startsWithLowercase ? '...' : '';
-          const truncatedText = prefix + truncateText(highlight.text);
-
-          return (
-            <Box
-              key={bookmark.id}
-              onClick={() => onBookmarkClick(highlight.id)}
-              sx={{
-                display: 'flex',
-                alignItems: 'start',
-                gap: 1,
-                py: 0.75,
-                px: 0.5,
-                borderRadius: 0.5,
-                cursor: 'pointer',
-                transition: 'background-color 0.2s ease',
-                '@media (hover: hover)': {
-                  '&:hover': {
-                    bgcolor: 'action.hover',
-                  },
-                },
-              }}
-            >
-              <BookmarkIcon
-                sx={{
-                  fontSize: 14,
-                  color: 'primary.main',
-                  flexShrink: 0,
-                  mt: 0.1,
-                }}
-              />
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: '0.875rem',
-                    color: 'text.primary',
-                    lineHeight: 1.4,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {truncatedText}
-                </Typography>
-                {highlight.page && (
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ fontSize: '0.75rem', mt: 0.25, display: 'block' }}
-                  >
-                    Page {highlight.page}
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-          );
-        })}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 2,
+          cursor: 'pointer',
+        }}
+        onClick={() => setIsExpanded((prev) => !prev)}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <BookmarkIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+          <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 600 }}>
+            Bookmarks
+          </Typography>
+        </Box>
+        <IconButton
+          size="small"
+          sx={{
+            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s',
+          }}
+        >
+          <ExpandMoreIcon fontSize="small" />
+        </IconButton>
       </Box>
+
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            style={{ overflow: 'hidden' }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              {bookmarkedHighlights.map(({ bookmark, highlight }) => {
+                if (!highlight) return null;
+
+                const startsWithLowercase =
+                  highlight.text.length > 0 &&
+                  highlight.text[0] === highlight.text[0].toLowerCase() &&
+                  highlight.text[0] !== highlight.text[0].toUpperCase();
+
+                const prefix = startsWithLowercase ? '...' : '';
+                const truncatedText = prefix + truncateText(highlight.text);
+
+                return (
+                  <Box
+                    key={bookmark.id}
+                    onClick={() => onBookmarkClick(highlight.id)}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'start',
+                      gap: 1,
+                      py: 0.75,
+                      px: 0.5,
+                      borderRadius: 0.5,
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s ease',
+                      '@media (hover: hover)': {
+                        '&:hover': {
+                          bgcolor: 'action.hover',
+                        },
+                      },
+                    }}
+                  >
+                    <BookmarkIcon
+                      sx={{
+                        fontSize: 14,
+                        color: 'primary.main',
+                        flexShrink: 0,
+                        mt: 0.1,
+                      }}
+                    />
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontSize: '0.875rem',
+                          color: 'text.primary',
+                          lineHeight: 1.4,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {truncatedText}
+                      </Typography>
+                      {highlight.page && (
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ fontSize: '0.75rem', mt: 0.25, display: 'block' }}
+                        >
+                          Page {highlight.page}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Box>
   );
 };
