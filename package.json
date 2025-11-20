@@ -1,0 +1,31 @@
+{
+  "name": "crossbill",
+  "version": "1.0.0",
+  "description": "Crossbill - KOReader highlights sync",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "prepare": "husky",
+    "lint": "npm run lint --workspace=frontend",
+    "format": "npm run format --workspace=frontend"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6"
+  },
+  "lint-staged": {
+    "frontend/**/*.{ts,tsx}": [
+      "bash -c 'cd frontend && eslint --fix \"$0\"'",
+      "bash -c 'cd frontend && prettier --write \"$0\"'"
+    ],
+    "frontend/**/*.{json,md,css}": [
+      "bash -c 'cd frontend && prettier --write \"$0\"'"
+    ],
+    "backend/**/*.py": [
+      "bash -c 'cd backend && poetry run ruff check --fix \"$0\"'",
+      "bash -c 'cd backend && poetry run black \"$0\"'"
+    ]
+  }
+}
