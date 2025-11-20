@@ -6,6 +6,7 @@ from typing import Any
 from pydantic import BaseModel, Field, model_validator
 
 from src.schemas.book_schemas import BookCreate, TagInBook
+from src.schemas.bookmark_schemas import Bookmark
 from src.schemas.highlight_tag_schemas import HighlightTagGroupInBook, HighlightTagInBook
 
 
@@ -122,6 +123,9 @@ class BookDetails(BaseModel):
     )
     highlight_tag_groups: list[HighlightTagGroupInBook] = Field(
         default_factory=list, description="List of highlight tag groups for this book"
+    )
+    bookmarks: list[Bookmark] = Field(
+        default_factory=list, description="List of bookmarks for this book"
     )
     chapters: list[ChapterWithHighlights] = Field(
         default_factory=list, description="List of chapters with highlights"

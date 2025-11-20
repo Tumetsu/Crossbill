@@ -278,6 +278,95 @@ class TestGetBookmarks:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
+class TestBookDetailsWithBookmarks:
+    """Test suite for bookmarks in book details endpoint."""
+
+    def test_book_details_includes_bookmarks(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        """Test that GET /book/:id includes bookmarks in the response."""
+        # Create a book with highlights and bookmarks
+        book = models.Book(title="Test Book", author="Test Author")
+        db_session.add(book)
+        db_session.commit()
+        db_session.refresh(book)
+
+        chapter = models.Chapter(book_id=book.id, name="Chapter 1")
+        db_session.add(chapter)
+        db_session.commit()
+        db_session.refresh(chapter)
+
+        highlight1 = models.Highlight(
+            book_id=book.id,
+            chapter_id=chapter.id,
+            text="Highlight 1",
+            page=10,
+            datetime="2024-01-15 14:30:22",
+        )
+        highlight2 = models.Highlight(
+            book_id=book.id,
+            chapter_id=chapter.id,
+            text="Highlight 2",
+            page=20,
+            datetime="2024-01-15 15:00:00",
+        )
+        db_session.add_all([highlight1, highlight2])
+        db_session.commit()
+        db_session.refresh(highlight1)
+        db_session.refresh(highlight2)
+
+        # Create bookmarks for both highlights
+        bookmark1 = models.Bookmark(book_id=book.id, highlight_id=highlight1.id)
+        bookmark2 = models.Bookmark(book_id=book.id, highlight_id=highlight2.id)
+        db_session.add_all([bookmark1, bookmark2])
+        db_session.commit()
+        db_session.refresh(bookmark1)
+        db_session.refresh(bookmark2)
+
+        # Get book details
+        response = client.get(f"/api/v1/book/{book.id}")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+
+        # Verify bookmarks are included
+        assert "bookmarks" in data
+        assert len(data["bookmarks"]) == 2
+
+        # Verify bookmark data
+        bookmark_ids = {b["id"] for b in data["bookmarks"]}
+        assert bookmark1.id in bookmark_ids
+        assert bookmark2.id in bookmark_ids
+
+        # Verify bookmark details
+        for bookmark in data["bookmarks"]:
+            assert "id" in bookmark
+            assert "book_id" in bookmark
+            assert "highlight_id" in bookmark
+            assert "created_at" in bookmark
+            assert bookmark["book_id"] == book.id
+
+    def test_book_details_empty_bookmarks(
+        self, client: TestClient, db_session: Session
+    ) -> None:
+        """Test that GET /book/:id returns empty bookmarks list when no bookmarks exist."""
+        # Create a book without bookmarks
+        book = models.Book(title="Test Book", author="Test Author")
+        db_session.add(book)
+        db_session.commit()
+        db_session.refresh(book)
+
+        # Get book details
+        response = client.get(f"/api/v1/book/{book.id}")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+
+        # Verify bookmarks field exists but is empty
+        assert "bookmarks" in data
+        assert len(data["bookmarks"]) == 0
+
+
 class TestBookmarkCascadeDelete:
     """Test suite for cascade deletion of bookmarks."""
 
