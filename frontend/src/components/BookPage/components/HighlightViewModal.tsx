@@ -429,8 +429,7 @@ interface HighlightViewModalProps {
   open: boolean;
   onClose: () => void;
   availableTags: HighlightTagInBook[];
-  bookmark?: Bookmark;
-  bookmarksByHighlightId?: Record<number, Bookmark>;
+  bookmarksByHighlightId: Record<number, Bookmark>;
   allHighlights?: Highlight[];
   currentIndex?: number;
   onNavigate?: (newIndex: number) => void;
@@ -442,7 +441,6 @@ export const HighlightViewModal = ({
   open,
   onClose,
   availableTags,
-  bookmark,
   bookmarksByHighlightId,
   allHighlights,
   currentIndex = 0,
@@ -452,9 +450,7 @@ export const HighlightViewModal = ({
   const [noteVisibleWhenEmpty, setNoteVisibleWhenEmpty] = useState(false);
 
   // Use bookmarksByHighlightId if available, otherwise fall back to bookmark prop
-  const currentBookmark = bookmarksByHighlightId
-    ? bookmarksByHighlightId[highlight.id]
-    : bookmark;
+  const currentBookmark = bookmarksByHighlightId[highlight.id] ?? 'undefined';
 
   const hasNavigation = allHighlights && allHighlights.length > 1 && onNavigate;
   const hasPrevious = hasNavigation && currentIndex > 0;
