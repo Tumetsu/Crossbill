@@ -15,7 +15,7 @@ export interface HighlightCardProps {
   highlight: Highlight;
   bookId: number;
   bookmark?: Bookmark;
-  bookmarksByHighlightId?: Record<number, Bookmark>;
+  bookmarksByHighlightId: Record<number, Bookmark>;
   allHighlights?: Highlight[];
   currentIndex?: number;
 }
@@ -193,7 +193,6 @@ export const HighlightCard = ({
         open={viewModalOpen}
         onClose={() => setViewModalOpen(false)}
         availableTags={tagsResponse?.tags || []}
-        bookmark={bookmark}
         bookmarksByHighlightId={bookmarksByHighlightId}
         allHighlights={allHighlights}
         currentIndex={currentHighlightIndex}
