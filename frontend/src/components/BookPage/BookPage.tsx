@@ -6,6 +6,7 @@ import { Alert, Box, Container, Typography } from '@mui/material';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { keyBy } from 'lodash';
 import { useState } from 'react';
+import { ScrollToTopButton } from '../common/ScrollToTopButton';
 import { SearchBar } from '../common/SearchBar';
 import { SectionTitle } from '../common/SectionTitle';
 import { Spinner } from '../common/Spinner';
@@ -146,6 +147,7 @@ export const BookPage = () => {
         minHeight: '100vh',
       }}
     >
+      <ScrollToTopButton />
       <FadeInOut ekey={'book-title'}>
         <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 }, py: 4 }}>
           {/* Book Info Card */}
