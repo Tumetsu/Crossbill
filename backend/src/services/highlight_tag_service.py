@@ -283,7 +283,9 @@ class HighlightTagService:
                 raise ValueError("Tag name cannot be empty")
             # Check if new name conflicts with existing tag
             if name != tag.name:
-                existing_tag = self.highlight_tag_repo.get_by_book_and_name(book_id, name, DEFAULT_USER_ID)
+                existing_tag = self.highlight_tag_repo.get_by_book_and_name(
+                    book_id, name, DEFAULT_USER_ID
+                )
                 if existing_tag:
                     raise CrossbillError(
                         f"Tag '{name}' already exists for this book", status_code=409
@@ -348,14 +350,18 @@ class HighlightTagService:
 
         # If updating, verify tag group belongs to the book
         if tag_group_id:
-            existing_tag_group = self.highlight_tag_repo.get_tag_group_by_id(tag_group_id, DEFAULT_USER_ID)
+            existing_tag_group = self.highlight_tag_repo.get_tag_group_by_id(
+                tag_group_id, DEFAULT_USER_ID
+            )
             if existing_tag_group and existing_tag_group.book_id != book_id:
                 raise CrossbillError(
                     f"Tag group {tag_group_id} does not belong to book {book_id}", status_code=400
                 )
 
         # Upsert the tag group
-        tag_group = self.highlight_tag_repo.upsert_tag_group(book_id, DEFAULT_USER_ID, name, tag_group_id)
+        tag_group = self.highlight_tag_repo.upsert_tag_group(
+            book_id, DEFAULT_USER_ID, name, tag_group_id
+        )
         self.db.commit()
 
         logger.info(

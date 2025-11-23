@@ -161,7 +161,9 @@ class BookService:
             raise BookNotFoundError(book_id)
 
         # Soft delete highlights
-        deleted_count = self.highlight_repo.soft_delete_by_ids(book_id, DEFAULT_USER_ID, highlight_ids)
+        deleted_count = self.highlight_repo.soft_delete_by_ids(
+            book_id, DEFAULT_USER_ID, highlight_ids
+        )
 
         # Commit the changes
         self.db.commit()

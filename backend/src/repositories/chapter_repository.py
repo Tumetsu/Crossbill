@@ -23,9 +23,7 @@ class ChapterRepository:
         """Initialize repository with database session."""
         self.db = db
 
-    def find_by_name_and_book(
-        self, book_id: int, name: str, user_id: int
-    ) -> models.Chapter | None:
+    def find_by_name_and_book(self, book_id: int, name: str, user_id: int) -> models.Chapter | None:
         """Find a chapter by name and book ID, verifying user ownership."""
         stmt = (
             select(models.Chapter)

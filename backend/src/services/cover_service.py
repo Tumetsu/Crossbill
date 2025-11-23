@@ -102,10 +102,14 @@ def _update_book_cover(book_id: int, cover_url: str, db: Session) -> None:
     """Update the book's cover field in the database."""
     try:
         # Get the book (filtered by user_id for security)
-        book = db.query(models.Book).filter(
-            models.Book.id == book_id,
-            models.Book.user_id == DEFAULT_USER_ID,
-        ).first()
+        book = (
+            db.query(models.Book)
+            .filter(
+                models.Book.id == book_id,
+                models.Book.user_id == DEFAULT_USER_ID,
+            )
+            .first()
+        )
         if book and not book.cover:
             book.cover = cover_url
             db.commit()

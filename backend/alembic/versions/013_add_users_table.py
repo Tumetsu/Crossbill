@@ -112,9 +112,7 @@ def downgrade() -> None:
 
     # Restore old constraints
     op.drop_constraint("uq_highlight_tag_user_book_name", "highlight_tags", type_="unique")
-    op.create_unique_constraint(
-        "uq_highlight_tag_book_name", "highlight_tags", ["book_id", "name"]
-    )
+    op.create_unique_constraint("uq_highlight_tag_book_name", "highlight_tags", ["book_id", "name"])
 
     op.drop_constraint("uq_tag_user_name", "tags", type_="unique")
     op.create_index("ix_tags_name", "tags", ["name"], unique=True)

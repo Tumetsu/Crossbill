@@ -19,7 +19,9 @@ class TestDeleteBook:
     def test_delete_book_success(self, client: TestClient, db_session: Session) -> None:
         """Test successful deletion of a book."""
         # Create a book with chapters and highlights
-        book = models.Book(title="Test Book", author="Test Author", isbn="1234567890", user_id=DEFAULT_USER_ID)
+        book = models.Book(
+            title="Test Book", author="Test Author", isbn="1234567890", user_id=DEFAULT_USER_ID
+        )
         db_session.add(book)
         db_session.commit()
         db_session.refresh(book)
@@ -272,7 +274,9 @@ class TestHighlightSyncWithSoftDelete:
     ) -> None:
         """Test that sync does not recreate soft-deleted highlights."""
         # Create a book with a highlight and soft-delete it
-        book = models.Book(title="Test Book", author="Test Author", isbn="1234567890", user_id=DEFAULT_USER_ID)
+        book = models.Book(
+            title="Test Book", author="Test Author", isbn="1234567890", user_id=DEFAULT_USER_ID
+        )
         db_session.add(book)
         db_session.commit()
         db_session.refresh(book)
