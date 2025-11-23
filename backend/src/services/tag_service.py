@@ -5,6 +5,7 @@ import logging
 from sqlalchemy.orm import Session
 
 from src import models, repositories
+from src.constants import DEFAULT_USER_ID
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ class TagService:
         Raises:
             ValueError: If book is not found
         """
-        book = self.book_repo.get_by_id(book_id)
+        book = self.book_repo.get_by_id(book_id, DEFAULT_USER_ID)
         if not book:
             raise ValueError(f"Book with id {book_id} not found")
 
@@ -46,7 +47,7 @@ class TagService:
         for tag_name in tag_names:
             name = tag_name.strip()
             if name:  # Skip empty strings
-                tag = self.tag_repo.get_or_create(name)
+                tag = self.tag_repo.get_or_create(name, DEFAULT_USER_ID)
                 tags.append(tag)
 
         # Update book's tags
@@ -59,4 +60,4 @@ class TagService:
 
     def get_all_tags(self) -> list[models.Tag]:
         """Get all available tags."""
-        return self.tag_repo.get_all()
+        return self.tag_repo.get_all(DEFAULT_USER_ID)
