@@ -53,7 +53,9 @@ class BookmarkService:
             )
 
         # Check if bookmark already exists
-        existing_bookmark = self.bookmark_repo.get_by_book_and_highlight(book_id, highlight_id, DEFAULT_USER_ID)
+        existing_bookmark = self.bookmark_repo.get_by_book_and_highlight(
+            book_id, highlight_id, DEFAULT_USER_ID
+        )
         if existing_bookmark:
             logger.info(
                 f"Bookmark already exists for book {book_id}, highlight {highlight_id}, returning existing"

@@ -193,8 +193,12 @@ class TestDeleteTagGroup:
         db_session.commit()
         db_session.refresh(tag_group)
 
-        tag1 = models.HighlightTag(book_id=book.id, user_id=DEFAULT_USER_ID, name="Tag 1", tag_group_id=tag_group.id)
-        tag2 = models.HighlightTag(book_id=book.id, user_id=DEFAULT_USER_ID, name="Tag 2", tag_group_id=tag_group.id)
+        tag1 = models.HighlightTag(
+            book_id=book.id, user_id=DEFAULT_USER_ID, name="Tag 1", tag_group_id=tag_group.id
+        )
+        tag2 = models.HighlightTag(
+            book_id=book.id, user_id=DEFAULT_USER_ID, name="Tag 2", tag_group_id=tag_group.id
+        )
         db_session.add_all([tag1, tag2])
         db_session.commit()
         db_session.refresh(tag1)
@@ -267,7 +271,9 @@ class TestUpdateTag:
         db_session.commit()
         db_session.refresh(tag_group)
 
-        tag = models.HighlightTag(book_id=book.id, user_id=DEFAULT_USER_ID, name="Important", tag_group_id=tag_group.id)
+        tag = models.HighlightTag(
+            book_id=book.id, user_id=DEFAULT_USER_ID, name="Important", tag_group_id=tag_group.id
+        )
         db_session.add(tag)
         db_session.commit()
         db_session.refresh(tag)
@@ -443,8 +449,12 @@ class TestBookDetailsWithTagGroups:
         db_session.commit()
         db_session.refresh(tag_group)
 
-        tag1 = models.HighlightTag(book_id=book.id, user_id=DEFAULT_USER_ID, name="Tag 1", tag_group_id=tag_group.id)
-        tag2 = models.HighlightTag(book_id=book.id, user_id=DEFAULT_USER_ID, name="Tag 2", tag_group_id=None)
+        tag1 = models.HighlightTag(
+            book_id=book.id, user_id=DEFAULT_USER_ID, name="Tag 1", tag_group_id=tag_group.id
+        )
+        tag2 = models.HighlightTag(
+            book_id=book.id, user_id=DEFAULT_USER_ID, name="Tag 2", tag_group_id=None
+        )
         db_session.add_all([tag1, tag2])
         db_session.commit()
 

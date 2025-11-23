@@ -82,7 +82,9 @@ class HighlightService:
             highlights_with_chapters.append((chapter_id, highlight_data))
 
         # Step 3: Bulk create highlights
-        created, skipped = self.highlight_repo.bulk_create(book.id, DEFAULT_USER_ID, highlights_with_chapters)
+        created, skipped = self.highlight_repo.bulk_create(
+            book.id, DEFAULT_USER_ID, highlights_with_chapters
+        )
 
         # Commit all changes (book, chapters, highlights)
         self.db.commit()

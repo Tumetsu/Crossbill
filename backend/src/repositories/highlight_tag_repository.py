@@ -113,7 +113,9 @@ class HighlightTagRepository:
     # HighlightTagGroup methods
     # Note: HighlightTagGroup doesn't have user_id directly, ownership is verified through book
 
-    def get_tag_group_by_id(self, tag_group_id: int, user_id: int) -> models.HighlightTagGroup | None:
+    def get_tag_group_by_id(
+        self, tag_group_id: int, user_id: int
+    ) -> models.HighlightTagGroup | None:
         """Get a highlight tag group by its ID, verifying user ownership through book."""
         stmt = (
             select(models.HighlightTagGroup)
@@ -140,7 +142,9 @@ class HighlightTagRepository:
         )
         return self.db.execute(stmt).scalar_one_or_none()
 
-    def get_tag_groups_by_book_id(self, book_id: int, user_id: int) -> list[models.HighlightTagGroup]:
+    def get_tag_groups_by_book_id(
+        self, book_id: int, user_id: int
+    ) -> list[models.HighlightTagGroup]:
         """Get all highlight tag groups for a book, verifying user ownership."""
         stmt = (
             select(models.HighlightTagGroup)

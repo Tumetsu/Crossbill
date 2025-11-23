@@ -82,12 +82,8 @@ class User(Base):
     )
 
     # Relationships
-    books: Mapped[list["Book"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
-    tags: Mapped[list["Tag"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
+    books: Mapped[list["Book"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    tags: Mapped[list["Tag"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     highlights: Mapped[list["Highlight"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
@@ -337,7 +333,9 @@ class HighlightTag(Base):
     )
 
     # Unique constraint: tag names are unique within a book per user
-    __table_args__ = (UniqueConstraint("user_id", "book_id", "name", name="uq_highlight_tag_user_book_name"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "book_id", "name", name="uq_highlight_tag_user_book_name"),
+    )
 
     def __repr__(self) -> str:
         """String representation of HighlightTag."""
