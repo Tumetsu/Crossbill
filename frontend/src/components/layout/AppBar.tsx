@@ -1,7 +1,10 @@
 import { Box, Button, Container, AppBar as MuiAppBar, Toolbar, Typography } from '@mui/material';
 import { Link } from '@tanstack/react-router';
+import { useAuth } from '../../context/AuthContext';
 
 export function AppBar() {
+  const { user, logout } = useAuth();
+
   return (
     <MuiAppBar
       position="sticky"
@@ -64,6 +67,37 @@ export function AppBar() {
           >
             Home
           </Button>
+
+          {/* Spacer */}
+          <Box sx={{ flexGrow: 1 }} />
+
+          {/* User info and logout */}
+          {user && (
+            <>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'primary.contrastText',
+                  opacity: 0.9,
+                }}
+              >
+                {user.name}
+              </Typography>
+              <Button
+                color="inherit"
+                onClick={logout}
+                sx={{
+                  fontWeight: 500,
+                  color: 'primary.contrastText',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
+              >
+                Logout
+              </Button>
+            </>
+          )}
         </Toolbar>
       </Container>
     </MuiAppBar>
