@@ -4,6 +4,7 @@ import structlog
 from sqlalchemy.orm import Session
 
 from src import models, repositories
+from src.constants import DEFAULT_USER_ID
 from src.exceptions import CrossbillError
 
 logger = structlog.get_logger(__name__)
@@ -32,7 +33,7 @@ class HighlightTagService:
         Raises:
             ValueError: If highlight not found
         """
-        highlight = self.highlight_repo.get_by_id(highlight_id)
+        highlight = self.highlight_repo.get_by_id(highlight_id, DEFAULT_USER_ID)
         if not highlight:
             raise ValueError(f"Highlight with id {highlight_id} not found")
 
@@ -51,11 +52,11 @@ class HighlightTagService:
         Raises:
             ValueError: If book not found
         """
-        book = self.book_repo.get_by_id(book_id)
+        book = self.book_repo.get_by_id(book_id, DEFAULT_USER_ID)
         if not book:
             raise ValueError(f"Book with id {book_id} not found")
 
-        return self.highlight_tag_repo.get_by_book_id(book_id)
+        return self.highlight_tag_repo.get_by_book_id(book_id, DEFAULT_USER_ID)
 
     def create_tag_for_book(self, book_id: int, name: str) -> models.HighlightTag:
         """
@@ -73,7 +74,7 @@ class HighlightTagService:
             CrossbillError: If tag already exists
         """
         # Validate book exists
-        book = self.book_repo.get_by_id(book_id)
+        book = self.book_repo.get_by_id(book_id, DEFAULT_USER_ID)
         if not book:
             raise ValueError(f"Book with id {book_id} not found")
 
@@ -83,12 +84,12 @@ class HighlightTagService:
             raise ValueError("Tag name cannot be empty")
 
         # Check if tag already exists
-        existing_tag = self.highlight_tag_repo.get_by_book_and_name(book_id, name)
+        existing_tag = self.highlight_tag_repo.get_by_book_and_name(book_id, name, DEFAULT_USER_ID)
         if existing_tag:
             raise CrossbillError(f"Tag '{name}' already exists for this book", status_code=409)
 
         # Create the tag
-        tag = self.highlight_tag_repo.create(book_id, name)
+        tag = self.highlight_tag_repo.create(book_id, DEFAULT_USER_ID, name)
         self.db.commit()
 
         logger.info("created_highlight_tag", tag_id=tag.id, book_id=book_id, name=name)
@@ -108,7 +109,7 @@ class HighlightTagService:
         Raises:
             ValueError: If tag doesn't belong to the specified book
         """
-        tag = self.highlight_tag_repo.get_by_id(tag_id)
+        tag = self.highlight_tag_repo.get_by_id(tag_id, DEFAULT_USER_ID)
         if not tag:
             return False
 
@@ -117,7 +118,7 @@ class HighlightTagService:
             raise ValueError(f"Tag {tag_id} does not belong to book {book_id}")
 
         # Delete the tag (cascade will remove associations)
-        success = self.highlight_tag_repo.delete(tag_id)
+        success = self.highlight_tag_repo.delete(tag_id, DEFAULT_USER_ID)
         if success:
             self.db.commit()
             logger.info("deleted_highlight_tag", tag_id=tag_id, book_id=book_id)
@@ -138,11 +139,11 @@ class HighlightTagService:
         Raises:
             ValueError: If highlight or tag not found, or if they belong to different books
         """
-        highlight = self.highlight_repo.get_by_id(highlight_id)
+        highlight = self.highlight_repo.get_by_id(highlight_id, DEFAULT_USER_ID)
         if not highlight:
             raise ValueError(f"Highlight with id {highlight_id} not found")
 
-        tag = self.highlight_tag_repo.get_by_id(tag_id)
+        tag = self.highlight_tag_repo.get_by_id(tag_id, DEFAULT_USER_ID)
         if not tag:
             raise ValueError(f"Tag with id {tag_id} not found")
 
@@ -178,7 +179,7 @@ class HighlightTagService:
             ValueError: If highlight not found, tag name is empty, or book/highlight mismatch
         """
         # Validate highlight exists and belongs to the book
-        highlight = self.highlight_repo.get_by_id(highlight_id)
+        highlight = self.highlight_repo.get_by_id(highlight_id, DEFAULT_USER_ID)
         if not highlight:
             raise ValueError(f"Highlight with id {highlight_id} not found")
 
@@ -191,7 +192,7 @@ class HighlightTagService:
             raise ValueError("Tag name cannot be empty")
 
         # Get or create the tag
-        tag = self.highlight_tag_repo.get_or_create(book_id, tag_name)
+        tag = self.highlight_tag_repo.get_or_create(book_id, DEFAULT_USER_ID, tag_name)
 
         # Add tag if not already present
         if tag not in highlight.highlight_tags:
@@ -226,12 +227,12 @@ class HighlightTagService:
         Raises:
             ValueError: If highlight not found
         """
-        highlight = self.highlight_repo.get_by_id(highlight_id)
+        highlight = self.highlight_repo.get_by_id(highlight_id, DEFAULT_USER_ID)
         if not highlight:
             raise ValueError(f"Highlight with id {highlight_id} not found")
 
         # Remove tag if present
-        tag = self.highlight_tag_repo.get_by_id(tag_id)
+        tag = self.highlight_tag_repo.get_by_id(tag_id, DEFAULT_USER_ID)
         if tag and tag in highlight.highlight_tags:
             highlight.highlight_tags.remove(tag)
             self.db.commit()
@@ -258,7 +259,7 @@ class HighlightTagService:
             ValueError: If tag not found or doesn't belong to the specified book
             CrossbillError: If new name conflicts with existing tag
         """
-        tag = self.highlight_tag_repo.get_by_id(tag_id)
+        tag = self.highlight_tag_repo.get_by_id(tag_id, DEFAULT_USER_ID)
         if not tag:
             raise ValueError(f"Tag with id {tag_id} not found")
 
@@ -268,7 +269,7 @@ class HighlightTagService:
 
         # Validate tag group if provided
         if tag_group_id is not None:
-            tag_group = self.highlight_tag_repo.get_tag_group_by_id(tag_group_id)
+            tag_group = self.highlight_tag_repo.get_tag_group_by_id(tag_group_id, DEFAULT_USER_ID)
             if not tag_group:
                 raise ValueError(f"Tag group with id {tag_group_id} not found")
             if tag_group.book_id != book_id:
@@ -282,7 +283,7 @@ class HighlightTagService:
                 raise ValueError("Tag name cannot be empty")
             # Check if new name conflicts with existing tag
             if name != tag.name:
-                existing_tag = self.highlight_tag_repo.get_by_book_and_name(book_id, name)
+                existing_tag = self.highlight_tag_repo.get_by_book_and_name(book_id, name, DEFAULT_USER_ID)
                 if existing_tag:
                     raise CrossbillError(
                         f"Tag '{name}' already exists for this book", status_code=409
@@ -293,7 +294,7 @@ class HighlightTagService:
         update_data["tag_group_id"] = tag_group_id
 
         # Update the tag
-        updated_tag = self.highlight_tag_repo.update(tag_id, **update_data)
+        updated_tag = self.highlight_tag_repo.update(tag_id, DEFAULT_USER_ID, **update_data)
         if updated_tag:
             self.db.commit()
             logger.info(
@@ -315,7 +316,7 @@ class HighlightTagService:
         Returns:
             List of HighlightTagGroup models (empty list if book doesn't exist)
         """
-        return self.highlight_tag_repo.get_tag_groups_by_book_id(book_id)
+        return self.highlight_tag_repo.get_tag_groups_by_book_id(book_id, DEFAULT_USER_ID)
 
     def upsert_tag_group(
         self, book_id: int, name: str, tag_group_id: int | None = None
@@ -336,7 +337,7 @@ class HighlightTagService:
             CrossbillError: If updating and tag group doesn't belong to the book
         """
         # Validate book exists
-        book = self.book_repo.get_by_id(book_id)
+        book = self.book_repo.get_by_id(book_id, DEFAULT_USER_ID)
         if not book:
             raise ValueError(f"Book with id {book_id} not found")
 
@@ -347,14 +348,14 @@ class HighlightTagService:
 
         # If updating, verify tag group belongs to the book
         if tag_group_id:
-            existing_tag_group = self.highlight_tag_repo.get_tag_group_by_id(tag_group_id)
+            existing_tag_group = self.highlight_tag_repo.get_tag_group_by_id(tag_group_id, DEFAULT_USER_ID)
             if existing_tag_group and existing_tag_group.book_id != book_id:
                 raise CrossbillError(
                     f"Tag group {tag_group_id} does not belong to book {book_id}", status_code=400
                 )
 
         # Upsert the tag group
-        tag_group = self.highlight_tag_repo.upsert_tag_group(book_id, name, tag_group_id)
+        tag_group = self.highlight_tag_repo.upsert_tag_group(book_id, DEFAULT_USER_ID, name, tag_group_id)
         self.db.commit()
 
         logger.info(
@@ -376,7 +377,7 @@ class HighlightTagService:
             True if deleted, False if not found
         """
         # Delete the tag group (tags' foreign keys will be set to NULL)
-        success = self.highlight_tag_repo.delete_tag_group(tag_group_id)
+        success = self.highlight_tag_repo.delete_tag_group(tag_group_id, DEFAULT_USER_ID)
         if success:
             self.db.commit()
             logger.info("deleted_highlight_tag_group", tag_group_id=tag_group_id)

@@ -5,6 +5,7 @@ import logging
 from sqlalchemy.orm import Session
 
 from src import repositories, schemas
+from src.constants import DEFAULT_USER_ID
 from src.exceptions import BookNotFoundError, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -36,12 +37,12 @@ class BookmarkService:
             ValidationError: If highlight doesn't exist or doesn't belong to the book
         """
         # Validate book exists
-        book = self.book_repo.get_by_id(book_id)
+        book = self.book_repo.get_by_id(book_id, DEFAULT_USER_ID)
         if not book:
             raise BookNotFoundError(book_id)
 
         # Validate highlight exists and belongs to the book
-        highlight = self.highlight_repo.get_by_id(highlight_id)
+        highlight = self.highlight_repo.get_by_id(highlight_id, DEFAULT_USER_ID)
         if not highlight:
             raise ValidationError(f"Highlight with id {highlight_id} not found", status_code=404)
 
@@ -52,7 +53,7 @@ class BookmarkService:
             )
 
         # Check if bookmark already exists
-        existing_bookmark = self.bookmark_repo.get_by_book_and_highlight(book_id, highlight_id)
+        existing_bookmark = self.bookmark_repo.get_by_book_and_highlight(book_id, highlight_id, DEFAULT_USER_ID)
         if existing_bookmark:
             logger.info(
                 f"Bookmark already exists for book {book_id}, highlight {highlight_id}, returning existing"
@@ -60,7 +61,7 @@ class BookmarkService:
             return schemas.Bookmark.model_validate(existing_bookmark)
 
         # Create bookmark
-        bookmark = self.bookmark_repo.create(book_id, highlight_id)
+        bookmark = self.bookmark_repo.create(book_id, highlight_id, DEFAULT_USER_ID)
         self.db.commit()
 
         logger.info(f"Created bookmark {bookmark.id} for book {book_id}, highlight {highlight_id}")
@@ -78,12 +79,12 @@ class BookmarkService:
             BookNotFoundError: If book is not found
         """
         # Validate book exists
-        book = self.book_repo.get_by_id(book_id)
+        book = self.book_repo.get_by_id(book_id, DEFAULT_USER_ID)
         if not book:
             raise BookNotFoundError(book_id)
 
         # Try to delete the bookmark (idempotent - returns False if not found)
-        deleted = self.bookmark_repo.delete(bookmark_id)
+        deleted = self.bookmark_repo.delete(bookmark_id, DEFAULT_USER_ID)
         self.db.commit()
 
         if deleted:
@@ -105,11 +106,11 @@ class BookmarkService:
             BookNotFoundError: If book is not found
         """
         # Validate book exists
-        book = self.book_repo.get_by_id(book_id)
+        book = self.book_repo.get_by_id(book_id, DEFAULT_USER_ID)
         if not book:
             raise BookNotFoundError(book_id)
 
-        bookmarks = self.bookmark_repo.get_by_book_id(book_id)
+        bookmarks = self.bookmark_repo.get_by_book_id(book_id, DEFAULT_USER_ID)
         return schemas.BookmarksResponse(
             bookmarks=[schemas.Bookmark.model_validate(b) for b in bookmarks]
         )

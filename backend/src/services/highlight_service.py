@@ -5,6 +5,7 @@ from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 
 from src import repositories, schemas
+from src.constants import DEFAULT_USER_ID
 from src.services import cover_service
 
 logger = structlog.get_logger(__name__)
@@ -47,7 +48,7 @@ class HighlightService:
         )
 
         # Step 1: Get or create book
-        book = self.book_repo.get_or_create(request.book)
+        book = self.book_repo.get_or_create(request.book, DEFAULT_USER_ID)
 
         # Step 1.5: Schedule cover fetching as background task (non-blocking)
         # Cover is fetched asynchronously and won't block the response
@@ -74,14 +75,14 @@ class HighlightService:
 
                 # Get or create chapter with the chapter number
                 chapter = self.chapter_repo.get_or_create(
-                    book.id, highlight_data.chapter, chapter_number
+                    book.id, DEFAULT_USER_ID, highlight_data.chapter, chapter_number
                 )
                 chapter_id = chapter.id
 
             highlights_with_chapters.append((chapter_id, highlight_data))
 
         # Step 3: Bulk create highlights
-        created, skipped = self.highlight_repo.bulk_create(book.id, highlights_with_chapters)
+        created, skipped = self.highlight_repo.bulk_create(book.id, DEFAULT_USER_ID, highlights_with_chapters)
 
         # Commit all changes (book, chapters, highlights)
         self.db.commit()
@@ -122,7 +123,7 @@ class HighlightService:
             HighlightSearchResponse with matching highlights and their book/chapter data
         """
         # Search using repository
-        highlights = self.highlight_repo.search(search_text, book_id, limit)
+        highlights = self.highlight_repo.search(search_text, DEFAULT_USER_ID, book_id, limit)
 
         # Convert to response schema with book and chapter data
         search_results = [
@@ -162,7 +163,7 @@ class HighlightService:
             BooksListResponse with list of books and pagination info
         """
         books_with_counts, total = self.book_repo.get_books_with_highlight_count(
-            offset, limit, search_text
+            DEFAULT_USER_ID, offset, limit, search_text
         )
 
         # Convert to response schema
@@ -197,7 +198,7 @@ class HighlightService:
             Updated highlight or None if not found
         """
         # Update the note using repository
-        highlight = self.highlight_repo.update_note(highlight_id, note_data.note)
+        highlight = self.highlight_repo.update_note(highlight_id, DEFAULT_USER_ID, note_data.note)
 
         if highlight is None:
             return None

@@ -8,6 +8,7 @@ import httpx
 from sqlalchemy.orm import Session
 
 from src import models
+from src.constants import DEFAULT_USER_ID
 
 logger = logging.getLogger(__name__)
 
@@ -100,8 +101,11 @@ async def _download_cover_async(isbn: str, book_id: int, cover_path: Path) -> st
 def _update_book_cover(book_id: int, cover_url: str, db: Session) -> None:
     """Update the book's cover field in the database."""
     try:
-        # Get the book
-        book = db.query(models.Book).filter(models.Book.id == book_id).first()
+        # Get the book (filtered by user_id for security)
+        book = db.query(models.Book).filter(
+            models.Book.id == book_id,
+            models.Book.user_id == DEFAULT_USER_ID,
+        ).first()
         if book and not book.cover:
             book.cover = cover_url
             db.commit()
