@@ -9,14 +9,15 @@ export const AXIOS_INSTANCE = Axios.create({
   },
 });
 
-// Add request interceptor for auth tokens (future)
+const AUTH_TOKEN_KEY = 'auth_token';
+
+// Add request interceptor for auth tokens
 AXIOS_INSTANCE.interceptors.request.use(
   (config) => {
-    // Future: Add auth token here
-    // const token = localStorage.getItem('auth_token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -26,9 +27,13 @@ AXIOS_INSTANCE.interceptors.request.use(
 AXIOS_INSTANCE.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle common errors
     if (error.response?.status === 401) {
-      // Future: Handle unauthorized
+      // Clear token and redirect to login on 401
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      // Only redirect if not already on login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
