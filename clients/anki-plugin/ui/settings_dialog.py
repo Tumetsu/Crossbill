@@ -34,6 +34,27 @@ class SettingsDialog(QDialog):
         self.server_host_input.setPlaceholderText("e.g., http://localhost:8000")
         form_layout.addRow("Server URL:", self.server_host_input)
 
+        # Authentication section label
+        auth_label = QLabel("<b>Authentication</b>")
+        form_layout.addRow("", auth_label)
+
+        # Email
+        self.email_input = QLineEdit()
+        self.email_input.setText(self.config.get('email', ''))
+        self.email_input.setPlaceholderText("email@example.com")
+        form_layout.addRow("Email:", self.email_input)
+
+        # Password
+        self.password_input = QLineEdit()
+        self.password_input.setText(self.config.get('password', ''))
+        self.password_input.setPlaceholderText("Enter password")
+        self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+        form_layout.addRow("Password:", self.password_input)
+
+        # Add spacing
+        spacer_label = QLabel("")
+        form_layout.addRow("", spacer_label)
+
         # Default deck
         self.default_deck_input = QLineEdit()
         self.default_deck_input.setText(self.config.get('default_deck', 'Default'))
@@ -57,6 +78,8 @@ class SettingsDialog(QDialog):
         help_label = QLabel(
             "<small>Configure your Crossbill server connection. "
             "Make sure the server URL is accessible from this computer.<br><br>"
+            "<b>Authentication:</b> Enter your credentials. Authentication happens automatically "
+            "when you use the plugin.<br><br>"
             "<b>Suspend on import:</b> When enabled, imported cards will be suspended "
             "(not appear in reviews) until you manually unsuspend them. "
             "This allows you to review and edit cards before studying them.</small>"
@@ -89,9 +112,15 @@ class SettingsDialog(QDialog):
     def test_connection(self):
         """Test connection to Crossbill server"""
         server_host = self.server_host_input.text().strip()
+        email = self.email_input.text().strip()
+        password = self.password_input.text().strip()
 
         if not server_host:
             QMessageBox.warning(self, "Error", "Please enter a server URL")
+            return
+
+        if not email or not password:
+            QMessageBox.warning(self, "Error", "Please enter email and password to test connection")
             return
 
         try:
@@ -106,18 +135,18 @@ class SettingsDialog(QDialog):
 
             from api import CrossbillAPI
 
-            api = CrossbillAPI(server_host)
+            api = CrossbillAPI(server_host, email=email, password=password)
             if api.test_connection():
                 QMessageBox.information(
                     self,
                     "Success",
-                    "Successfully connected to Crossbill server!"
+                    "Successfully connected and authenticated with Crossbill server!"
                 )
             else:
                 QMessageBox.warning(
                     self,
                     "Connection Failed",
-                    "Could not connect to Crossbill server. Please check the URL and try again."
+                    "Could not connect to Crossbill server. Please check the URL, credentials, and try again."
                 )
 
         except Exception as e:
@@ -130,6 +159,8 @@ class SettingsDialog(QDialog):
     def save_settings(self):
         """Save settings to config"""
         server_host = self.server_host_input.text().strip()
+        email = self.email_input.text().strip()
+        password = self.password_input.text().strip()
         default_deck = self.default_deck_input.text().strip()
         default_note_type = self.default_note_type_input.text().strip()
         suspend_on_import = self.suspend_on_import_checkbox.isChecked()
@@ -146,6 +177,11 @@ class SettingsDialog(QDialog):
 
         # Update config
         self.config['server_host'] = server_host
+        self.config['email'] = email
+        self.config['password'] = password
+        # Keep existing bearer_token if present
+        if 'bearer_token' not in self.config:
+            self.config['bearer_token'] = ''
         self.config['default_deck'] = default_deck
         self.config['default_note_type'] = default_note_type
         self.config['suspend_on_import'] = suspend_on_import

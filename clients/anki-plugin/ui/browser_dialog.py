@@ -33,7 +33,21 @@ class HighlightsBrowserDialog(QWidget):
         self.setWindowFlags(Qt.WindowType.Window)
         self.config = config or mw.addonManager.getConfig(__name__.split('.')[0])
         self.plugin_config = PluginConfig.from_dict(self.config)
-        self.api = CrossbillAPI(self.config.get('server_host', 'http://localhost:8000'))
+
+        # Initialize API with authentication credentials
+        self.api = CrossbillAPI(
+            self.config.get('server_host', 'http://localhost:8000'),
+            bearer_token=self.config.get('bearer_token', ''),
+            email=self.config.get('email', ''),
+            password=self.config.get('password', '')
+        )
+
+        # Set up callback to save bearer token when it's updated
+        def save_token(token: str):
+            self.config['bearer_token'] = token
+            mw.addonManager.writeConfig(__name__.split('.')[0], self.config)
+
+        self.api.set_on_token_update(save_token)
         self.note_creator = NoteCreator(self.plugin_config)
 
         self.books: List[BookWithHighlightCount] = []

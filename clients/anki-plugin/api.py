@@ -7,7 +7,8 @@ Handles communication with the Crossbill backend server.
 import json
 import urllib.request
 import urllib.error
-from typing import Optional
+import urllib.parse
+from typing import Optional, Callable
 from models import BooksListResponse, BookDetails, BookWithHighlightCount, Book, ChapterWithHighlights, Chapter, Highlight, HighlightTag
 
 
@@ -19,21 +20,115 @@ class CrossbillAPIError(Exception):
 class CrossbillAPI:
     """Client for communicating with Crossbill backend"""
 
-    def __init__(self, server_host: str):
+    def __init__(
+        self,
+        server_host: str,
+        bearer_token: Optional[str] = None,
+        email: Optional[str] = None,
+        password: Optional[str] = None
+    ):
         """
         Initialize API client
 
         Args:
             server_host: Base URL of Crossbill server (e.g., 'http://localhost:8000')
+            bearer_token: Optional JWT bearer token for authentication
+            email: Optional email for automatic login
+            password: Optional password for automatic login
         """
         self.server_host = server_host.rstrip('/')
+        self.bearer_token = bearer_token or ''
+        self.email = email or ''
+        self.password = password or ''
+        self.on_token_update: Optional[Callable[[str], None]] = None
 
-    def _make_request(self, endpoint: str) -> dict:
+    def set_credentials(self, email: str, password: str):
+        """Update email and password credentials"""
+        self.email = email
+        self.password = password
+
+    def set_bearer_token(self, token: str):
+        """Update bearer token"""
+        self.bearer_token = token
+
+    def set_on_token_update(self, callback: Callable[[str], None]):
+        """Set callback to be called when token is updated"""
+        self.on_token_update = callback
+
+    def _ensure_authenticated(self):
+        """Ensure we have a valid authentication token"""
+        if self.bearer_token:
+            return
+
+        if not self.email or not self.password:
+            raise CrossbillAPIError(
+                'No credentials provided. Please set email and password in settings.'
+            )
+
+        self.login(self.email, self.password)
+
+    def login(self, email: str, password: str) -> dict:
         """
-        Make HTTP GET request to API endpoint
+        Authenticate with Crossbill server
+
+        Args:
+            email: User email
+            password: User password
+
+        Returns:
+            Login response with access_token and token_type
+
+        Raises:
+            CrossbillAPIError: If login fails
+        """
+        url = f"{self.server_host}/api/v1/auth/login"
+
+        # Prepare form data (OAuth2 password flow)
+        form_data = urllib.parse.urlencode({
+            'username': email,  # Backend uses 'username' field for email
+            'password': password
+        })
+
+        try:
+            request = urllib.request.Request(
+                url,
+                data=form_data.encode('utf-8'),
+                method='POST'
+            )
+            request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+            request.add_header('Accept', 'application/json')
+
+            with urllib.request.urlopen(request, timeout=30) as response:
+                data = json.loads(response.read().decode('utf-8'))
+                self.bearer_token = data['access_token']
+
+                # Notify callback if set
+                if self.on_token_update:
+                    self.on_token_update(self.bearer_token)
+
+                return data
+
+        except urllib.error.HTTPError as e:
+            error_msg = f"HTTP {e.code}: {e.reason}"
+            try:
+                error_body = e.read().decode('utf-8')
+                error_data = json.loads(error_body)
+                if 'detail' in error_data:
+                    error_msg += f" - {error_data['detail']}"
+            except:
+                pass
+            raise CrossbillAPIError(f"Login failed: {error_msg}") from e
+
+        except Exception as e:
+            raise CrossbillAPIError(f"Login failed: {e}") from e
+
+    def _make_request(self, endpoint: str, retry_on_401: bool = True) -> dict:
+        """
+        Make authenticated HTTP GET request to API endpoint
 
         Args:
             endpoint: API endpoint path (e.g., '/api/v1/highlights/books')
+            retry_on_401: Whether to retry with fresh login on 401 error
 
         Returns:
             Parsed JSON response
@@ -41,17 +136,31 @@ class CrossbillAPI:
         Raises:
             CrossbillAPIError: If request fails
         """
+        # Ensure we're authenticated before making the request
+        self._ensure_authenticated()
+
         url = f"{self.server_host}{endpoint}"
 
         try:
             request = urllib.request.Request(url)
             request.add_header('Accept', 'application/json')
 
+            # Add authentication header
+            if self.bearer_token:
+                request.add_header('Authorization', f'Bearer {self.bearer_token}')
+
             with urllib.request.urlopen(request, timeout=30) as response:
                 data = response.read()
                 return json.loads(data.decode('utf-8'))
 
         except urllib.error.HTTPError as e:
+            # Handle 401 Unauthorized - token expired
+            if e.code == 401 and retry_on_401:
+                # Clear token and retry with fresh login
+                self.bearer_token = ''
+                self._ensure_authenticated()
+                return self._make_request(endpoint, retry_on_401=False)
+
             error_msg = f"HTTP {e.code}: {e.reason}"
             try:
                 error_body = e.read().decode('utf-8')
