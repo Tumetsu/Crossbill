@@ -6,6 +6,7 @@
  */
 
 export * from './apiRootApiV1Get200';
+export * from './appSettingsResponse';
 export * from './bodyLoginApiV1AuthLoginPost';
 export * from './bodyLoginApiV1AuthLoginPostClientId';
 export * from './bodyLoginApiV1AuthLoginPostClientSecret';
