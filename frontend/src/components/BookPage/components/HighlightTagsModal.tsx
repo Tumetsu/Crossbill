@@ -250,7 +250,7 @@ export const HighlightTagsModal = ({
                   placeholder="Enter tag group name..."
                   value={value}
                   onChange={onChange}
-                  onBlur={() => void handleFieldBlur(index, value)}
+                  onBlur={() => void handleFieldBlur(index, value ?? '')}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
