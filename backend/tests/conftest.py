@@ -1,5 +1,6 @@
 """Pytest configuration and fixtures."""
 
+import os
 from collections.abc import Generator
 from typing import Any
 
@@ -20,6 +21,9 @@ from src.models import (  # noqa: F401 - Import to register models
     User,
 )
 from src.services.auth_service import get_current_user
+
+# Set TESTING environment variable to skip database initialization in main.py
+os.environ["TESTING"] = "1"
 
 # Test database URL (in-memory SQLite)
 TEST_DATABASE_URL = "sqlite:///:memory:"
