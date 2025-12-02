@@ -1,5 +1,6 @@
 """Main FastAPI application."""
 
+import os
 import time
 import uuid
 from collections.abc import AsyncGenerator
@@ -81,7 +82,9 @@ def _initialize_admin_password() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan context manager."""
-    _initialize_admin_password()
+    # Skip database initialization during tests
+    if not os.getenv("TESTING"):
+        _initialize_admin_password()
     yield
 
 
