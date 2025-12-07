@@ -39,11 +39,11 @@ poetry run mypy src
 ```
 All type errors must be resolved before committing.
 
-### 3. Code Formatting (Black)
+### 3. Code Formatting (Ruff)
 ```bash
-poetry run black .
+poetry run ruff format .
 ```
-All code must be formatted with Black before committing.
+All code must be formatted with Ruff before committing.
 
 ### 4. Tests
 ```bash
@@ -55,7 +55,7 @@ All tests must pass before committing.
 
 Run all checks in sequence:
 ```bash
-poetry run black . && \
+poetry run ruff format . && \
 poetry run ruff check --fix . && \
 poetry run mypy src && \
 poetry run pytest
