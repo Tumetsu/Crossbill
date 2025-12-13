@@ -30,9 +30,17 @@ class BookRepository:
         )
         return self.db.execute(stmt).scalar_one_or_none()
 
-    def create(self, book_data: schemas.BookCreate, user_id: int) -> models.Book:
+    def find_by_content_hash(self, content_hash: str, user_id: int) -> models.Book | None:
+        """Find a book by its content hash and user."""
+        stmt = select(models.Book).where(
+            models.Book.content_hash == content_hash,
+            models.Book.user_id == user_id,
+        )
+        return self.db.execute(stmt).scalar_one_or_none()
+
+    def create(self, book_data: schemas.BookCreate, content_hash: str, user_id: int) -> models.Book:
         """Create a new book."""
-        book = models.Book(**book_data.model_dump(), user_id=user_id)
+        book = models.Book(**book_data.model_dump(), content_hash=content_hash, user_id=user_id)
         self.db.add(book)
         self.db.flush()
         self.db.refresh(book)
@@ -49,16 +57,23 @@ class BookRepository:
         logger.info(f"Updated book: {book.title} (id={book.id})")
         return book
 
-    def get_or_create(self, book_data: schemas.BookCreate, user_id: int) -> models.Book:
-        """Get existing book by title, author, and user or create a new one."""
-        book = self.find_by_title_and_author(book_data.title, book_data.author, user_id)
+    def get_or_create(
+        self, book_data: schemas.BookCreate, content_hash: str, user_id: int
+    ) -> models.Book:
+        """Get existing book by content hash and user or create a new one.
+
+        The content_hash is computed from the original title and author at upload time.
+        This allows book metadata (title, author) to be edited later without breaking
+        deduplication - the hash identifies the same book across uploads.
+        """
+        book = self.find_by_content_hash(content_hash, user_id)
 
         if book:
-            # Update metadata in case it changed
+            # Update metadata in case it changed (but preserve the original hash)
             return self.update(book, book_data)
 
-        # Create new book
-        return self.create(book_data, user_id)
+        # Create new book with the computed hash
+        return self.create(book_data, content_hash, user_id)
 
     def get_books_with_highlight_count(
         self, user_id: int, offset: int = 0, limit: int = 100, search_text: str | None = None

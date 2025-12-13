@@ -5,7 +5,7 @@ from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 
 from src import repositories, schemas
-from src.utils import compute_highlight_hash
+from src.utils import compute_book_hash, compute_highlight_hash
 
 logger = structlog.get_logger(__name__)
 
@@ -48,8 +48,12 @@ class HighlightService:
             highlight_count=len(request.highlights),
         )
 
-        # Step 1: Get or create book
-        book = self.book_repo.get_or_create(request.book, user_id)
+        # Step 1: Compute book hash and get or create book
+        book_hash = compute_book_hash(
+            title=request.book.title,
+            author=request.book.author,
+        )
+        book = self.book_repo.get_or_create(request.book, book_hash, user_id)
 
         # Step 2: Process chapters and prepare highlights with content hashes
         highlights_with_chapters: list[tuple[int | None, str, schemas.HighlightCreate]] = []

@@ -22,7 +22,34 @@ from src.models import (  # noqa: F401 - Import to register models
     User,
 )
 from src.services.auth_service import get_current_user
-from src.utils import compute_highlight_hash
+from src.utils import compute_book_hash, compute_highlight_hash
+
+
+def create_test_book(  # noqa: PLR0913
+    db_session: Session,
+    user_id: int,
+    title: str,
+    author: str | None = None,
+    isbn: str | None = None,
+    cover: str | None = None,
+) -> Book:
+    """Create a test book with properly computed content_hash.
+
+    This helper ensures all test books have valid content_hash values.
+    """
+    content_hash = compute_book_hash(title=title, author=author)
+    book = Book(
+        user_id=user_id,
+        title=title,
+        author=author,
+        isbn=isbn,
+        cover=cover,
+        content_hash=content_hash,
+    )
+    db_session.add(book)
+    db_session.commit()
+    db_session.refresh(book)
+    return book
 
 
 def create_test_highlight(  # noqa: PLR0913
