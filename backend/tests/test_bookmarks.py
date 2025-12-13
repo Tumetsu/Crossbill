@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from src import models
-from tests.conftest import create_test_highlight
+from tests.conftest import create_test_book, create_test_highlight
 
 # Default user ID used by services (matches conftest default user)
 DEFAULT_USER_ID = 1
@@ -19,10 +19,12 @@ class TestCreateBookmark:
     def test_create_bookmark_success(self, client: TestClient, db_session: Session) -> None:
         """Test successful creation of a bookmark."""
         # Create a book with a highlight
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         highlight = create_test_highlight(
             db_session=db_session,
@@ -55,10 +57,12 @@ class TestCreateBookmark:
     def test_create_bookmark_duplicate(self, client: TestClient, db_session: Session) -> None:
         """Test creating a duplicate bookmark returns existing bookmark."""
         # Create a book with a highlight
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         highlight = create_test_highlight(
             db_session=db_session,
@@ -106,10 +110,12 @@ class TestCreateBookmark:
     ) -> None:
         """Test creating a bookmark for non-existent highlight."""
         # Create a book
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         response = client.post(
             f"/api/v1/book/{book.id}/bookmark",
@@ -123,12 +129,18 @@ class TestCreateBookmark:
     ) -> None:
         """Test creating a bookmark for a highlight that belongs to a different book."""
         # Create two books
-        book1 = models.Book(title="Test Book 1", author="Test Author", user_id=DEFAULT_USER_ID)
-        book2 = models.Book(title="Test Book 2", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add_all([book1, book2])
-        db_session.commit()
-        db_session.refresh(book1)
-        db_session.refresh(book2)
+        book1 = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book 1",
+            author="Test Author 1",
+        )
+        book2 = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book 2",
+            author="Test Author 2",
+        )
 
         # Create highlight for book2
         highlight = create_test_highlight(
@@ -155,10 +167,12 @@ class TestDeleteBookmark:
     def test_delete_bookmark_success(self, client: TestClient, db_session: Session) -> None:
         """Test successful deletion of a bookmark."""
         # Create a book with a highlight and bookmark
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         highlight = create_test_highlight(
             db_session=db_session,
@@ -186,10 +200,12 @@ class TestDeleteBookmark:
     def test_delete_bookmark_idempotent(self, client: TestClient, db_session: Session) -> None:
         """Test that deleting a non-existent bookmark is idempotent (returns 200)."""
         # Create a book
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         # Try to delete non-existent bookmark
         response = client.delete(f"/api/v1/book/{book.id}/bookmark/99999")
@@ -210,10 +226,12 @@ class TestGetBookmarks:
     def test_get_bookmarks_success(self, client: TestClient, db_session: Session) -> None:
         """Test successful retrieval of bookmarks."""
         # Create a book with highlights and bookmarks
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         highlight1 = create_test_highlight(
             db_session=db_session,
@@ -253,10 +271,12 @@ class TestGetBookmarks:
     def test_get_bookmarks_empty(self, client: TestClient, db_session: Session) -> None:
         """Test getting bookmarks when book has none."""
         # Create a book with no bookmarks
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         response = client.get(f"/api/v1/book/{book.id}/bookmarks")
 
@@ -278,10 +298,12 @@ class TestBookDetailsWithBookmarks:
     def test_book_details_includes_bookmarks(self, client: TestClient, db_session: Session) -> None:
         """Test that GET /book/:id includes bookmarks in the response."""
         # Create a book with highlights and bookmarks
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         chapter = models.Chapter(book_id=book.id, name="Chapter 1")
         db_session.add(chapter)
@@ -341,10 +363,12 @@ class TestBookDetailsWithBookmarks:
     def test_book_details_empty_bookmarks(self, client: TestClient, db_session: Session) -> None:
         """Test that GET /book/:id returns empty bookmarks list when no bookmarks exist."""
         # Create a book without bookmarks
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         # Get book details
         response = client.get(f"/api/v1/book/{book.id}")
@@ -365,10 +389,12 @@ class TestBookmarkCascadeDelete:
     ) -> None:
         """Test that bookmarks are deleted when book is deleted."""
         # Create a book with a highlight and bookmark
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         highlight = create_test_highlight(
             db_session=db_session,
@@ -399,10 +425,12 @@ class TestBookmarkCascadeDelete:
     ) -> None:
         """Test that bookmarks are deleted when highlight is deleted."""
         # Create a book with a highlight and bookmark
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         highlight = create_test_highlight(
             db_session=db_session,

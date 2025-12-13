@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from src import models
-from tests.conftest import create_test_highlight
+from tests.conftest import create_test_book, create_test_highlight
 
 # Default user ID used by services (matches conftest default user)
 DEFAULT_USER_ID = 1
@@ -20,12 +20,13 @@ class TestDeleteBook:
     def test_delete_book_success(self, client: TestClient, db_session: Session) -> None:
         """Test successful deletion of a book."""
         # Create a book with chapters and highlights
-        book = models.Book(
-            title="Test Book", author="Test Author", isbn="1234567890", user_id=DEFAULT_USER_ID
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+            isbn="1234567890",
         )
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
 
         chapter = models.Chapter(book_id=book.id, name="Chapter 1")
         db_session.add(chapter)
@@ -81,10 +82,12 @@ class TestDeleteHighlights:
     def test_delete_highlights_success(self, client: TestClient, db_session: Session) -> None:
         """Test successful soft deletion of highlights."""
         # Create a book with highlights
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         highlight1 = create_test_highlight(
             db_session=db_session,
@@ -124,10 +127,12 @@ class TestDeleteHighlights:
     def test_delete_highlights_partial(self, client: TestClient, db_session: Session) -> None:
         """Test deletion of subset of highlights."""
         # Create a book with highlights
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         highlight1 = create_test_highlight(
             db_session=db_session,
@@ -167,10 +172,12 @@ class TestDeleteHighlights:
     ) -> None:
         """Test deletion of already soft-deleted highlights."""
         # Create a book with highlights
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         # Create a highlight and soft-delete it
         highlight = create_test_highlight(
@@ -196,12 +203,18 @@ class TestDeleteHighlights:
     def test_delete_highlights_wrong_book(self, client: TestClient, db_session: Session) -> None:
         """Test deletion of highlights with wrong book ID."""
         # Create two books with highlights
-        book1 = models.Book(title="Book 1", author="Author 1", user_id=DEFAULT_USER_ID)
-        book2 = models.Book(title="Book 2", author="Author 2", user_id=DEFAULT_USER_ID)
-        db_session.add_all([book1, book2])
-        db_session.commit()
-        db_session.refresh(book1)
-        db_session.refresh(book2)
+        book1 = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Book 1",
+            author="Author 1",
+        )
+        book2 = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Book 2",
+            author="Author 2",
+        )
 
         highlight1 = create_test_highlight(
             db_session=db_session,
@@ -243,10 +256,12 @@ class TestDeleteHighlights:
     def test_delete_highlights_empty_list(self, client: TestClient, db_session: Session) -> None:
         """Test deletion with empty highlight list."""
         # Create a book
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         # Try to delete with empty list
         payload = {"highlight_ids": []}
@@ -266,12 +281,13 @@ class TestHighlightSyncWithSoftDelete:
     ) -> None:
         """Test that sync does not recreate soft-deleted highlights."""
         # Create a book with a highlight and soft-delete it
-        book = models.Book(
-            title="Test Book", author="Test Author", isbn="1234567890", user_id=DEFAULT_USER_ID
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+            isbn="1234567890",
         )
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
 
         create_test_highlight(
             db_session=db_session,
@@ -316,10 +332,12 @@ class TestHighlightSyncWithSoftDelete:
     ) -> None:
         """Test that sync creates new highlights but skips deleted ones."""
         # Create a book with a soft-deleted highlight
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         create_test_highlight(
             db_session=db_session,
@@ -379,10 +397,12 @@ class TestGetBookDetails:
     ) -> None:
         """Test that book details endpoint excludes soft-deleted highlights."""
         # Create a book with both active and deleted highlights
-        book = models.Book(title="Test Book", author="Test Author", user_id=DEFAULT_USER_ID)
-        db_session.add(book)
-        db_session.commit()
-        db_session.refresh(book)
+        book = create_test_book(
+            db_session=db_session,
+            user_id=DEFAULT_USER_ID,
+            title="Test Book",
+            author="Test Author",
+        )
 
         chapter = models.Chapter(book_id=book.id, name="Chapter 1")
         db_session.add(chapter)
