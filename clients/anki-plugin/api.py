@@ -240,7 +240,7 @@ class CrossbillAPI:
         Raises:
             CrossbillAPIError: If request fails
         """
-        endpoint = f"/api/v1/book/{book_id}"
+        endpoint = f"/api/v1/books/{book_id}"
         data = self._make_request(endpoint)
 
         # Parse chapters with highlights

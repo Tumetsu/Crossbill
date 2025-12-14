@@ -217,14 +217,14 @@ export const HighlightTags = ({
       onMutate: async (variables) => {
         // Cancel any outgoing refetches
         await queryClient.cancelQueries({
-          queryKey: [`/api/v1/book/${bookId}`],
+          queryKey: [`/api/v1/books/${bookId}`],
         });
 
         // Snapshot the previous value
-        const previousBook = queryClient.getQueryData([`/api/v1/book/${bookId}`]);
+        const previousBook = queryClient.getQueryData([`/api/v1/books/${bookId}`]);
 
         // Optimistically update the cache
-        queryClient.setQueryData([`/api/v1/book/${bookId}`], (old: unknown) => {
+        queryClient.setQueryData([`/api/v1/books/${bookId}`], (old: unknown) => {
           if (!old || typeof old !== 'object') return old;
           const bookData = old as { highlight_tags: HighlightTagInBook[] };
 
@@ -243,7 +243,7 @@ export const HighlightTags = ({
       },
       onSuccess: (updatedTag) => {
         // Update cache with actual server response to prevent drift
-        queryClient.setQueryData([`/api/v1/book/${bookId}`], (old: unknown) => {
+        queryClient.setQueryData([`/api/v1/books/${bookId}`], (old: unknown) => {
           if (!old || typeof old !== 'object') return old;
           const bookData = old as { highlight_tags: HighlightTagInBook[] };
 
@@ -258,7 +258,7 @@ export const HighlightTags = ({
       onError: (error: unknown, _variables, context) => {
         // If the mutation fails, use the context to roll back
         if (context?.previousBook) {
-          queryClient.setQueryData([`/api/v1/book/${bookId}`], context.previousBook);
+          queryClient.setQueryData([`/api/v1/books/${bookId}`], context.previousBook);
         }
         console.error('Failed to update tag:', error);
       },
