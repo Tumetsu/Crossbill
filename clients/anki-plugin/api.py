@@ -9,11 +9,21 @@ import urllib.request
 import urllib.error
 import urllib.parse
 from typing import Optional, Callable
-from models import BooksListResponse, BookDetails, BookWithHighlightCount, Book, ChapterWithHighlights, Chapter, Highlight, HighlightTag
+from models import (
+    BooksListResponse,
+    BookDetails,
+    BookWithHighlightCount,
+    Book,
+    ChapterWithHighlights,
+    Chapter,
+    Highlight,
+    HighlightTag,
+)
 
 
 class CrossbillAPIError(Exception):
     """Raised when API request fails"""
+
     pass
 
 
@@ -25,7 +35,7 @@ class CrossbillAPI:
         server_host: str,
         bearer_token: Optional[str] = None,
         email: Optional[str] = None,
-        password: Optional[str] = None
+        password: Optional[str] = None,
     ):
         """
         Initialize API client
@@ -36,10 +46,10 @@ class CrossbillAPI:
             email: Optional email for automatic login
             password: Optional password for automatic login
         """
-        self.server_host = server_host.rstrip('/')
-        self.bearer_token = bearer_token or ''
-        self.email = email or ''
-        self.password = password or ''
+        self.server_host = server_host.rstrip("/")
+        self.bearer_token = bearer_token or ""
+        self.email = email or ""
+        self.password = password or ""
         self.on_token_update: Optional[Callable[[str], None]] = None
 
     def set_credentials(self, email: str, password: str):
@@ -62,7 +72,7 @@ class CrossbillAPI:
 
         if not self.email or not self.password:
             raise CrossbillAPIError(
-                'No credentials provided. Please set email and password in settings.'
+                "No credentials provided. Please set email and password in settings."
             )
 
         self.login(self.email, self.password)
@@ -84,23 +94,23 @@ class CrossbillAPI:
         url = f"{self.server_host}/api/v1/auth/login"
 
         # Prepare form data (OAuth2 password flow)
-        form_data = urllib.parse.urlencode({
-            'username': email,  # Backend uses 'username' field for email
-            'password': password
-        })
+        form_data = urllib.parse.urlencode(
+            {
+                "username": email,  # Backend uses 'username' field for email
+                "password": password,
+            }
+        )
 
         try:
             request = urllib.request.Request(
-                url,
-                data=form_data.encode('utf-8'),
-                method='POST'
+                url, data=form_data.encode("utf-8"), method="POST"
             )
-            request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-            request.add_header('Accept', 'application/json')
+            request.add_header("Content-Type", "application/x-www-form-urlencoded")
+            request.add_header("Accept", "application/json")
 
             with urllib.request.urlopen(request, timeout=30) as response:
-                data = json.loads(response.read().decode('utf-8'))
-                self.bearer_token = data['access_token']
+                data = json.loads(response.read().decode("utf-8"))
+                self.bearer_token = data["access_token"]
 
                 # Notify callback if set
                 if self.on_token_update:
@@ -111,9 +121,9 @@ class CrossbillAPI:
         except urllib.error.HTTPError as e:
             error_msg = f"HTTP {e.code}: {e.reason}"
             try:
-                error_body = e.read().decode('utf-8')
+                error_body = e.read().decode("utf-8")
                 error_data = json.loads(error_body)
-                if 'detail' in error_data:
+                if "detail" in error_data:
                     error_msg += f" - {error_data['detail']}"
             except:
                 pass
@@ -127,7 +137,7 @@ class CrossbillAPI:
         Make authenticated HTTP GET request to API endpoint
 
         Args:
-            endpoint: API endpoint path (e.g., '/api/v1/highlights/books')
+            endpoint: API endpoint path (e.g., '/api/v1/books')
             retry_on_401: Whether to retry with fresh login on 401 error
 
         Returns:
@@ -143,29 +153,29 @@ class CrossbillAPI:
 
         try:
             request = urllib.request.Request(url)
-            request.add_header('Accept', 'application/json')
+            request.add_header("Accept", "application/json")
 
             # Add authentication header
             if self.bearer_token:
-                request.add_header('Authorization', f'Bearer {self.bearer_token}')
+                request.add_header("Authorization", f"Bearer {self.bearer_token}")
 
             with urllib.request.urlopen(request, timeout=30) as response:
                 data = response.read()
-                return json.loads(data.decode('utf-8'))
+                return json.loads(data.decode("utf-8"))
 
         except urllib.error.HTTPError as e:
             # Handle 401 Unauthorized - token expired
             if e.code == 401 and retry_on_401:
                 # Clear token and retry with fresh login
-                self.bearer_token = ''
+                self.bearer_token = ""
                 self._ensure_authenticated()
                 return self._make_request(endpoint, retry_on_401=False)
 
             error_msg = f"HTTP {e.code}: {e.reason}"
             try:
-                error_body = e.read().decode('utf-8')
+                error_body = e.read().decode("utf-8")
                 error_data = json.loads(error_body)
-                if 'detail' in error_data:
+                if "detail" in error_data:
                     error_msg += f" - {error_data['detail']}"
             except:
                 pass
@@ -194,27 +204,27 @@ class CrossbillAPI:
         Raises:
             CrossbillAPIError: If request fails
         """
-        endpoint = f"/api/v1/highlights/books?limit={limit}&offset={offset}"
+        endpoint = f"/api/v1/books?limit={limit}&offset={offset}"
         data = self._make_request(endpoint)
 
         books = []
-        for book_data in data.get('books', []):
+        for book_data in data.get("books", []):
             book = BookWithHighlightCount(
-                id=book_data['id'],
-                title=book_data['title'],
-                author=book_data.get('author'),
-                isbn=book_data.get('isbn'),
-                created_at=book_data['created_at'],
-                updated_at=book_data['updated_at'],
-                highlight_count=book_data['highlight_count']
+                id=book_data["id"],
+                title=book_data["title"],
+                author=book_data.get("author"),
+                isbn=book_data.get("isbn"),
+                created_at=book_data["created_at"],
+                updated_at=book_data["updated_at"],
+                highlight_count=book_data["highlight_count"],
             )
             books.append(book)
 
         return BooksListResponse(
             books=books,
-            total=data.get('total', len(books)),
-            offset=data.get('offset', 0),
-            limit=data.get('limit', limit)
+            total=data.get("total", len(books)),
+            offset=data.get("offset", 0),
+            limit=data.get("limit", limit),
         )
 
     def get_book_details(self, book_id: int) -> BookDetails:
@@ -235,51 +245,48 @@ class CrossbillAPI:
 
         # Parse chapters with highlights
         chapters = []
-        for chapter_data in data.get('chapters', []):
+        for chapter_data in data.get("chapters", []):
             # Parse highlights for this chapter
             highlights = []
-            for hl_data in chapter_data.get('highlights', []):
+            for hl_data in chapter_data.get("highlights", []):
                 # Parse tags
                 tags = []
-                for tag_data in hl_data.get('highlight_tags', []):
-                    tags.append(HighlightTag(
-                        id=tag_data['id'],
-                        name=tag_data['name']
-                    ))
+                for tag_data in hl_data.get("highlight_tags", []):
+                    tags.append(HighlightTag(id=tag_data["id"], name=tag_data["name"]))
 
                 highlight = Highlight(
-                    id=hl_data['id'],
-                    book_id=hl_data['book_id'],
-                    chapter_id=hl_data.get('chapter_id'),
-                    text=hl_data['text'],
-                    chapter=hl_data.get('chapter'),
-                    page=hl_data.get('page'),
-                    note=hl_data.get('note'),
-                    datetime=hl_data['datetime'],
+                    id=hl_data["id"],
+                    book_id=hl_data["book_id"],
+                    chapter_id=hl_data.get("chapter_id"),
+                    text=hl_data["text"],
+                    chapter=hl_data.get("chapter"),
+                    page=hl_data.get("page"),
+                    note=hl_data.get("note"),
+                    datetime=hl_data["datetime"],
                     highlight_tags=tags,
-                    created_at=hl_data['created_at'],
-                    updated_at=hl_data['updated_at']
+                    created_at=hl_data["created_at"],
+                    updated_at=hl_data["updated_at"],
                 )
                 highlights.append(highlight)
 
             chapter = ChapterWithHighlights(
-                id=chapter_data['id'],
-                book_id=data['id'],  # Use book ID from parent response
-                name=chapter_data['name'],
-                created_at=chapter_data['created_at'],
-                updated_at=chapter_data['updated_at'],
-                highlights=highlights
+                id=chapter_data["id"],
+                book_id=data["id"],  # Use book ID from parent response
+                name=chapter_data["name"],
+                created_at=chapter_data["created_at"],
+                updated_at=chapter_data["updated_at"],
+                highlights=highlights,
             )
             chapters.append(chapter)
 
         return BookDetails(
-            id=data['id'],
-            title=data['title'],
-            author=data.get('author'),
-            isbn=data.get('isbn'),
-            created_at=data['created_at'],
-            updated_at=data['updated_at'],
-            chapters=chapters
+            id=data["id"],
+            title=data["title"],
+            author=data.get("author"),
+            isbn=data.get("isbn"),
+            created_at=data["created_at"],
+            updated_at=data["updated_at"],
+            chapters=chapters,
         )
 
     def test_connection(self) -> bool:

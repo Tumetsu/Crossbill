@@ -89,7 +89,7 @@ export class CrossbillAPI {
   private getAuthHeaders(): HeadersInit {
     if (this.bearerToken) {
       return {
-        'Authorization': `Bearer ${this.bearerToken}`,
+        Authorization: `Bearer ${this.bearerToken}`,
       };
     }
     return {};
@@ -120,9 +120,7 @@ export class CrossbillAPI {
   }
 
   async getBooks(): Promise<BooksListResponse> {
-    const response = await this.authenticatedFetch(
-      `${this.serverHost}/api/v1/highlights/books?limit=1000`
-    );
+    const response = await this.authenticatedFetch(`${this.serverHost}/api/v1/books?limit=1000`);
     if (!response.ok) {
       throw new Error(`Failed to fetch books: ${response.statusText}`);
     }
@@ -130,7 +128,7 @@ export class CrossbillAPI {
   }
 
   async getBookDetails(bookId: number): Promise<BookDetails> {
-    const response = await this.authenticatedFetch(`${this.serverHost}/api/v1/book/${bookId}`);
+    const response = await this.authenticatedFetch(`${this.serverHost}/api/v1/books/${bookId}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch book details: ${response.statusText}`);
     }
