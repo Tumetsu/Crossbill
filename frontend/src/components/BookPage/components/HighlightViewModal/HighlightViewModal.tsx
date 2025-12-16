@@ -1,0 +1,239 @@
+import { useDeleteHighlightsApiV1BooksBookIdHighlightDelete } from '@/api/generated/books/books';
+import type { Bookmark, Highlight, HighlightTagInBook } from '@/api/generated/model';
+import { FadeInOut } from '@/components/common/animations/FadeInOut.tsx';
+import { ArrowBack as ArrowBackIcon, ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
+import { Box, Button, IconButton, Typography } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { CommonDialog } from '../../../common/CommonDialog';
+import { HighlightContent } from './components/HighlightContent';
+import { HighlightNote } from './components/HighlightNote';
+import { ProgressBar } from './components/ProgressBar';
+import { TagInput } from './components/TagInput';
+import { Toolbar } from './components/Toolbar';
+import { useHighlightNavigation } from './hooks/useHighlightNavigation';
+
+export interface HighlightViewModalProps {
+  highlight: Highlight;
+  bookId: number;
+  open: boolean;
+  onClose: (lastViewedHighlightId?: number) => void;
+  availableTags: HighlightTagInBook[];
+  bookmarksByHighlightId: Record<number, Bookmark>;
+  allHighlights?: Highlight[];
+  currentIndex?: number;
+  onNavigate?: (newIndex: number) => void;
+}
+
+export const HighlightViewModal = ({
+  highlight,
+  bookId,
+  open,
+  onClose,
+  availableTags,
+  bookmarksByHighlightId,
+  allHighlights,
+  currentIndex = 0,
+  onNavigate,
+}: HighlightViewModalProps) => {
+  const queryClient = useQueryClient();
+  const [noteVisibleWhenEmpty, setNoteVisibleWhenEmpty] = useState(false);
+
+  const currentBookmark = bookmarksByHighlightId[highlight.id] ?? undefined;
+
+  const { hasNavigation, hasPrevious, hasNext, handlePrevious, handleNext, swipeHandlers } =
+    useHighlightNavigation({
+      open,
+      currentIndex,
+      totalCount: allHighlights?.length ?? 1,
+      onNavigate,
+    });
+
+  const hasNote = !!highlight.note;
+  const noteVisible = hasNote || noteVisibleWhenEmpty;
+
+  const handleNoteToggle = () => {
+    setNoteVisibleWhenEmpty((prev) => !prev);
+  };
+
+  const deleteHighlightMutation = useDeleteHighlightsApiV1BooksBookIdHighlightDelete({
+    mutation: {
+      onSuccess: () => {
+        void queryClient.refetchQueries({
+          queryKey: [`/api/v1/books/${bookId}`],
+          exact: true,
+        });
+        onClose();
+      },
+      onError: (error) => {
+        console.error('Failed to delete highlight:', error);
+        alert('Failed to delete highlight. Please try again.');
+      },
+    },
+  });
+
+  const handleDelete = () => {
+    if (
+      confirm(
+        'Are you sure you want to delete this highlight? This will soft-delete the highlight and prevent it from being recreated during sync.'
+      )
+    ) {
+      deleteHighlightMutation.mutate({
+        bookId,
+        data: { highlight_ids: [highlight.id] },
+      });
+    }
+  };
+
+  const handleClose = () => {
+    void queryClient.invalidateQueries({
+      queryKey: [`/api/v1/books/${bookId}`],
+    });
+    void queryClient.invalidateQueries({
+      queryKey: [`/api/v1/books/${bookId}/highlight_tags`],
+    });
+    onClose(highlight.id);
+  };
+
+  const isLoading = deleteHighlightMutation.isPending;
+
+  const titleText = highlight.chapter ? `${highlight.chapter}` : 'Highlight';
+  const title = (
+    <Typography
+      variant="h6"
+      component="span"
+      sx={{
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        maxWidth: { xs: 'calc(100vw - 120px)', sm: 'calc(100vw - 200px)', md: '600px' },
+        display: 'block',
+      }}
+    >
+      {titleText}
+    </Typography>
+  );
+
+  // Shared content for both layouts
+  const renderContent = () => (
+    <>
+      <TagInput
+        highlightId={highlight.id}
+        bookId={bookId}
+        initialTags={highlight.highlight_tags || []}
+        availableTags={availableTags}
+        disabled={isLoading}
+      />
+      <HighlightNote
+        highlightId={highlight.id}
+        bookId={bookId}
+        initialNote={highlight.note}
+        visible={noteVisible}
+        disabled={isLoading}
+      />
+      <Toolbar
+        key={highlight.id}
+        highlightId={highlight.id}
+        bookId={bookId}
+        bookmark={currentBookmark}
+        hasNote={hasNote}
+        noteVisible={noteVisible}
+        onNoteToggle={handleNoteToggle}
+        onDelete={handleDelete}
+        disabled={isLoading}
+      />
+    </>
+  );
+
+  return (
+    <CommonDialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="md"
+      isLoading={isLoading}
+      title={title}
+      headerElement={
+        hasNavigation && allHighlights ? (
+          <ProgressBar currentIndex={currentIndex} totalCount={allHighlights.length} />
+        ) : undefined
+      }
+      footerActions={
+        <Box sx={{ display: 'flex', justifyContent: 'end', width: '100%' }}>
+          <Button onClick={handleClose} disabled={isLoading}>
+            Close
+          </Button>
+        </Box>
+      }
+    >
+      {/* Desktop Layout: Navigation buttons on sides */}
+      <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 2 }}>
+        {hasNavigation && (
+          <IconButton
+            onClick={handlePrevious}
+            disabled={!hasPrevious || isLoading}
+            sx={{
+              flexShrink: 0,
+              visibility: hasPrevious ? 'visible' : 'hidden',
+            }}
+            aria-label="Previous highlight"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+        )}
+
+        <Box display="flex" flexDirection="column" gap={3} flex={1} {...swipeHandlers}>
+          <FadeInOut ekey={highlight.id}>
+            <HighlightContent highlight={highlight} />
+          </FadeInOut>
+          {renderContent()}
+        </Box>
+
+        {hasNavigation && (
+          <IconButton
+            onClick={handleNext}
+            disabled={!hasNext || isLoading}
+            sx={{
+              flexShrink: 0,
+              visibility: hasNext ? 'visible' : 'hidden',
+            }}
+            aria-label="Next highlight"
+          >
+            <ArrowForwardIcon />
+          </IconButton>
+        )}
+      </Box>
+
+      {/* Mobile Layout: Navigation buttons below */}
+      <Box
+        sx={{ display: { xs: 'flex', sm: 'none' }, flexDirection: 'column', gap: 3 }}
+        {...swipeHandlers}
+      >
+        <HighlightContent highlight={highlight} />
+        {renderContent()}
+
+        {hasNavigation && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, pt: 1 }}>
+            <Button
+              onClick={handlePrevious}
+              disabled={!hasPrevious || isLoading}
+              startIcon={<ArrowBackIcon />}
+              variant="outlined"
+              sx={{ flex: 1, maxWidth: '200px' }}
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={handleNext}
+              disabled={!hasNext || isLoading}
+              endIcon={<ArrowForwardIcon />}
+              variant="outlined"
+              sx={{ flex: 1, maxWidth: '200px' }}
+            >
+              Next
+            </Button>
+          </Box>
+        )}
+      </Box>
+    </CommonDialog>
+  );
+};
