@@ -86,11 +86,7 @@ const Footer = ({ highlight, bookmark }: FooterProps) => {
 
 const previewWordCount = 40;
 
-export const HighlightCard = ({
-  highlight,
-  bookmark,
-  onOpenModal,
-}: HighlightCardProps) => {
+export const HighlightCard = ({ highlight, bookmark, onOpenModal }: HighlightCardProps) => {
   const startsWithLowercase =
     highlight.text.length > 0 &&
     highlight.text[0] === highlight.text[0].toLowerCase() &&
