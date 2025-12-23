@@ -253,21 +253,6 @@ export const BookPage = () => {
           <>
             <Box sx={{ px: { xs: 2, sm: 3 }, py: 4, maxWidth: '800px', mx: 'auto' }}>
               <BookTitle book={book} highlightCount={totalHighlights} />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 3 }}>
-                <HighlightTags
-                  tags={book.highlight_tags || []}
-                  tagGroups={book.highlight_tag_groups || []}
-                  bookId={book.id}
-                  selectedTag={selectedTagId}
-                  onTagClick={handleTagClick}
-                />
-                <BookmarkList
-                  bookmarks={book.bookmarks || []}
-                  allHighlights={allHighlights}
-                  onBookmarkClick={handleBookmarkClick}
-                />
-                <ChapterNav chapters={chapters} onChapterClick={handleChapterClick} />
-              </Box>
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 3 }}>
                 <Box sx={{ flexGrow: 1 }}>
                   <SearchBar
