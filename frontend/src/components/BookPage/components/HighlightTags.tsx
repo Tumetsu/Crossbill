@@ -256,6 +256,8 @@ interface UngroupedTagsProps {
   selectedTag: number | null | undefined;
   activeTag: HighlightTagInBook | null;
   movingTagId: number | null;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
   onTagClick: (tagId: number | null) => void;
 }
 
@@ -264,6 +266,8 @@ const UngroupedTags = ({
   selectedTag,
   activeTag,
   movingTagId,
+  isCollapsed,
+  onToggleCollapse,
   onTagClick,
 }: UngroupedTagsProps) => {
   const shouldHide = tags.length === 0 && activeTag === null && movingTagId === null;
@@ -287,48 +291,42 @@ const UngroupedTags = ({
           borderColor: 'divider',
         }}
       >
-        <Typography
-          variant="subtitle2"
-          sx={{
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: 'text.secondary',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            mb: 1,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.5,
-          }}
-        >
-          Ungrouped
-          <Typography
-            component="span"
-            sx={{
-              fontSize: '0.7rem',
-              fontWeight: 400,
-              color: 'text.disabled',
-            }}
-          >
-            ({tags.length})
-          </Typography>
-        </Typography>
-        <DroppableGroup id="ungrouped" isEmpty={tags.length === 0} emptyHeight={30}>
-          {tags.length > 0 ? (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-              {tags.map((tag) => (
-                <DraggableTag
-                  key={tag.id}
-                  tag={tag}
-                  selectedTag={selectedTag}
-                  onTagClick={onTagClick}
-                />
-              ))}
-            </Box>
-          ) : (
-            <EmptyGroupPlaceholder message="Drop here to remove from groups" />
+        <Box sx={{ mb: isCollapsed ? 0 : 1 }}>
+          <TagGroupTitle
+            title="Ungrouped"
+            count={tags.length}
+            isCollapsed={isCollapsed}
+            onToggleCollapse={onToggleCollapse}
+          />
+        </Box>
+        <AnimatePresence initial={false}>
+          {!isCollapsed && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <DroppableGroup id="ungrouped" isEmpty={tags.length === 0} emptyHeight={30}>
+                {tags.length > 0 ? (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                    {tags.map((tag) => (
+                      <DraggableTag
+                        key={tag.id}
+                        tag={tag}
+                        selectedTag={selectedTag}
+                        onTagClick={onTagClick}
+                      />
+                    ))}
+                  </Box>
+                ) : (
+                  <EmptyGroupPlaceholder message="Drop here to remove from groups" />
+                )}
+              </DroppableGroup>
+            </motion.div>
           )}
-        </DroppableGroup>
+        </AnimatePresence>
       </Box>
     </motion.div>
   );
@@ -453,6 +451,60 @@ const AddGroupForm = ({
   );
 };
 
+interface TagGroupTitleProps {
+  title: string;
+  count: number;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+}
+
+const TagGroupTitle = ({ title, count, isCollapsed, onToggleCollapse }: TagGroupTitleProps) => {
+  return (
+    <Box
+      onClick={onToggleCollapse}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.5,
+        flex: 1,
+        cursor: 'pointer',
+      }}
+    >
+      <ExpandMoreIcon
+        sx={{
+          fontSize: 16,
+          color: 'text.secondary',
+          transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+          transition: 'transform 0.15s',
+        }}
+      />
+      <Typography
+        variant="subtitle2"
+        sx={{
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          color: 'text.secondary',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+        }}
+      >
+        {title}
+        <Typography
+          component="span"
+          sx={{
+            fontSize: '0.7rem',
+            fontWeight: 400,
+            color: 'text.disabled',
+            ml: 0.5,
+          }}
+        >
+          ({count})
+        </Typography>
+      </Typography>
+    </Box>
+  );
+};
+
 interface TagGroupHeaderProps {
   group: HighlightTagGroupInBook;
   tagCount: number;
@@ -535,47 +587,12 @@ const TagGroupHeader = ({
           />
         </ClickAwayListener>
       ) : (
-        <Box
-          onClick={onToggleCollapse}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.5,
-            flex: 1,
-          }}
-        >
-          <ExpandMoreIcon
-            sx={{
-              fontSize: 16,
-              color: 'text.secondary',
-              transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
-              transition: 'transform 0.15s',
-            }}
-          />
-          <Typography
-            variant="subtitle2"
-            sx={{
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: 'text.secondary',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-            }}
-          >
-            {group.name}
-          </Typography>
-          <Typography
-            component="span"
-            sx={{
-              fontSize: '0.7rem',
-              fontWeight: 400,
-              color: 'text.disabled',
-              ml: 0.5,
-            }}
-          >
-            ({tagCount})
-          </Typography>
-        </Box>
+        <TagGroupTitle
+          title={group.name}
+          count={tagCount}
+          isCollapsed={isCollapsed}
+          onToggleCollapse={onToggleCollapse}
+        />
       )}
       {!isEditing && (
         <Box
@@ -627,6 +644,7 @@ export const HighlightTags = ({
   onTagClick,
 }: HighlightTagsProps) => {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({});
+  const [ungroupedCollapsed, setUngroupedCollapsed] = useState(false);
   const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
   const [showAddGroup, setShowAddGroup] = useState(false);
@@ -781,6 +799,10 @@ export const HighlightTags = ({
     }));
   };
 
+  const handleToggleUngroupedCollapse = () => {
+    setUngroupedCollapsed((prev) => !prev);
+  };
+
   const handleStartEdit = (group: HighlightTagGroupInBook) => {
     setEditingGroupId(group.id);
     setEditValue(group.name);
@@ -927,6 +949,8 @@ export const HighlightTags = ({
               selectedTag={selectedTag}
               activeTag={activeTag}
               movingTagId={movingTagId}
+              isCollapsed={ungroupedCollapsed}
+              onToggleCollapse={handleToggleUngroupedCollapse}
               onTagClick={onTagClick}
             />
           </Box>
