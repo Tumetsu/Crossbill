@@ -161,6 +161,298 @@ const EmptyGroupPlaceholder = ({ message }: { message: string }) => (
   </Box>
 );
 
+interface TagGroupProps {
+  group: HighlightTagGroupInBook;
+  tags: HighlightTagInBook[];
+  isCollapsed: boolean;
+  isEditing: boolean;
+  editValue: string;
+  isProcessing: boolean;
+  selectedTag: number | null | undefined;
+  onToggleCollapse: () => void;
+  onStartEdit: () => void;
+  onEditChange: (value: string) => void;
+  onEditSubmit: () => void;
+  onEditCancel: () => void;
+  onDelete: () => void;
+  onTagClick: (tagId: number | null) => void;
+}
+
+const TagGroup = ({
+  group,
+  tags,
+  isCollapsed,
+  isEditing,
+  editValue,
+  isProcessing,
+  selectedTag,
+  onToggleCollapse,
+  onStartEdit,
+  onEditChange,
+  onEditSubmit,
+  onEditCancel,
+  onDelete,
+  onTagClick,
+}: TagGroupProps) => {
+  return (
+    <Box
+      sx={{
+        p: 1.5,
+        bgcolor: 'rgba(255, 255, 255, 0.6)',
+        borderRadius: 1,
+        border: '1px solid',
+        borderColor: 'divider',
+        transition: 'all 0.15s',
+      }}
+    >
+      <TagGroupHeader
+        group={group}
+        tagCount={tags.length}
+        isCollapsed={isCollapsed}
+        isEditing={isEditing}
+        editValue={editValue}
+        onToggleCollapse={onToggleCollapse}
+        onStartEdit={onStartEdit}
+        onEditChange={onEditChange}
+        onEditSubmit={onEditSubmit}
+        onEditCancel={onEditCancel}
+        onDelete={onDelete}
+        isProcessing={isProcessing}
+      />
+      <AnimatePresence initial={false}>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <DroppableGroup id={`group-${group.id}`} isEmpty={tags.length === 0}>
+              {tags.length > 0 ? (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                  {tags.map((tag) => (
+                    <DraggableTag
+                      key={tag.id}
+                      tag={tag}
+                      selectedTag={selectedTag}
+                      onTagClick={onTagClick}
+                    />
+                  ))}
+                </Box>
+              ) : (
+                <EmptyGroupPlaceholder message="Drag tags here" />
+              )}
+            </DroppableGroup>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Box>
+  );
+};
+
+interface UngroupedTagsProps {
+  tags: HighlightTagInBook[];
+  selectedTag: number | null | undefined;
+  activeTag: HighlightTagInBook | null;
+  movingTagId: number | null;
+  onTagClick: (tagId: number | null) => void;
+}
+
+const UngroupedTags = ({
+  tags,
+  selectedTag,
+  activeTag,
+  movingTagId,
+  onTagClick,
+}: UngroupedTagsProps) => {
+  const shouldHide = tags.length === 0 && activeTag === null && movingTagId === null;
+
+  return (
+    <motion.div
+      initial={false}
+      animate={{
+        height: shouldHide ? 0 : 'auto',
+        opacity: shouldHide ? 0 : 1,
+      }}
+      transition={{ duration: 0.2 }}
+      style={{ overflow: 'hidden' }}
+    >
+      <Box
+        sx={{
+          p: 1.5,
+          bgcolor: 'rgba(255, 255, 255, 0.4)',
+          borderRadius: 1,
+          border: '1px dashed',
+          borderColor: 'divider',
+        }}
+      >
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: 'text.secondary',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            mb: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+          }}
+        >
+          Ungrouped
+          <Typography
+            component="span"
+            sx={{
+              fontSize: '0.7rem',
+              fontWeight: 400,
+              color: 'text.disabled',
+            }}
+          >
+            ({tags.length})
+          </Typography>
+        </Typography>
+        <DroppableGroup id="ungrouped" isEmpty={tags.length === 0} emptyHeight={30}>
+          {tags.length > 0 ? (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+              {tags.map((tag) => (
+                <DraggableTag
+                  key={tag.id}
+                  tag={tag}
+                  selectedTag={selectedTag}
+                  onTagClick={onTagClick}
+                />
+              ))}
+            </Box>
+          ) : (
+            <EmptyGroupPlaceholder message="Drop here to remove from groups" />
+          )}
+        </DroppableGroup>
+      </Box>
+    </motion.div>
+  );
+};
+
+interface AddGroupFormProps {
+  isVisible: boolean;
+  groupName: string;
+  isProcessing: boolean;
+  onGroupNameChange: (name: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+
+const AddGroupForm = ({
+  isVisible,
+  groupName,
+  isProcessing,
+  onGroupNameChange,
+  onSubmit,
+  onCancel,
+}: AddGroupFormProps) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onSubmit();
+    } else if (e.key === 'Escape') {
+      onCancel();
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          style={{ overflow: 'hidden' }}
+        >
+          <Box
+            sx={{
+              mb: 2,
+              p: 1.5,
+              bgcolor: 'action.hover',
+              borderRadius: 1,
+              border: '1px dashed',
+              borderColor: 'divider',
+            }}
+          >
+            <ClickAwayListener onClickAway={onSubmit}>
+              <TextField
+                value={groupName}
+                onChange={(e) => onGroupNameChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Group name..."
+                size="small"
+                autoFocus
+                disabled={isProcessing}
+                fullWidth
+                sx={{
+                  mb: 1,
+                  '& .MuiInputBase-input': {
+                    py: 0.75,
+                    px: 1.5,
+                    fontSize: '0.813rem',
+                  },
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 1.5,
+                    bgcolor: 'background.paper',
+                  },
+                }}
+              />
+            </ClickAwayListener>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Box
+                component="button"
+                onClick={onSubmit}
+                disabled={isProcessing}
+                sx={{
+                  flex: 1,
+                  py: 0.75,
+                  px: 1.5,
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  border: 'none',
+                  borderRadius: 1.5,
+                  fontSize: '0.75rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  '&:disabled': { opacity: 0.6, cursor: 'not-allowed' },
+                }}
+              >
+                Add
+              </Box>
+              <Box
+                component="button"
+                onClick={onCancel}
+                sx={{
+                  flex: 1,
+                  py: 0.75,
+                  px: 1.5,
+                  bgcolor: 'transparent',
+                  color: 'text.secondary',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1.5,
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+              >
+                Cancel
+              </Box>
+            </Box>
+          </Box>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 interface TagGroupHeaderProps {
   group: HighlightTagGroupInBook;
   tagCount: number;
@@ -562,16 +854,6 @@ export const HighlightTags = ({
     }
   };
 
-  const handleAddGroupKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      void handleAddGroup();
-    } else if (e.key === 'Escape') {
-      setShowAddGroup(false);
-      setNewGroupName('');
-    }
-  };
-
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <Box>
@@ -602,232 +884,51 @@ export const HighlightTags = ({
           </Tooltip>
         </Box>
 
-        {/* Add New Group Input */}
-        <AnimatePresence>
-          {showAddGroup && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              style={{ overflow: 'hidden' }}
-            >
-              <Box
-                sx={{
-                  mb: 2,
-                  p: 1.5,
-                  bgcolor: 'action.hover',
-                  borderRadius: 1,
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                }}
-              >
-                <ClickAwayListener onClickAway={handleAddGroup}>
-                  <TextField
-                    value={newGroupName}
-                    onChange={(e) => setNewGroupName(e.target.value)}
-                    onKeyDown={handleAddGroupKeyDown}
-                    placeholder="Group name..."
-                    size="small"
-                    autoFocus
-                    disabled={isProcessing}
-                    fullWidth
-                    sx={{
-                      mb: 1,
-                      '& .MuiInputBase-input': {
-                        py: 0.75,
-                        px: 1.5,
-                        fontSize: '0.813rem',
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 1.5,
-                        bgcolor: 'background.paper',
-                      },
-                    }}
-                  />
-                </ClickAwayListener>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Box
-                    component="button"
-                    onClick={() => void handleAddGroup()}
-                    disabled={isProcessing}
-                    sx={{
-                      flex: 1,
-                      py: 0.75,
-                      px: 1.5,
-                      bgcolor: 'primary.main',
-                      color: 'primary.contrastText',
-                      border: 'none',
-                      borderRadius: 1.5,
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      '&:hover': { bgcolor: 'primary.dark' },
-                      '&:disabled': { opacity: 0.6, cursor: 'not-allowed' },
-                    }}
-                  >
-                    Add
-                  </Box>
-                  <Box
-                    component="button"
-                    onClick={() => {
-                      setShowAddGroup(false);
-                      setNewGroupName('');
-                    }}
-                    sx={{
-                      flex: 1,
-                      py: 0.75,
-                      px: 1.5,
-                      bgcolor: 'transparent',
-                      color: 'text.secondary',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      borderRadius: 1.5,
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      '&:hover': { bgcolor: 'action.hover' },
-                    }}
-                  >
-                    Cancel
-                  </Box>
-                </Box>
-              </Box>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Add New Group Form */}
+        <AddGroupForm
+          isVisible={showAddGroup}
+          groupName={newGroupName}
+          isProcessing={isProcessing}
+          onGroupNameChange={setNewGroupName}
+          onSubmit={() => void handleAddGroup()}
+          onCancel={() => {
+            setShowAddGroup(false);
+            setNewGroupName('');
+          }}
+        />
 
         {/* Tag Groups Content */}
         {tags && tags.length > 0 ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Grouped tags */}
             {groupedTags.map(({ group, tags: groupTags }) => (
-              <Box
+              <TagGroup
                 key={group.id}
-                sx={{
-                  p: 1.5,
-                  bgcolor: 'rgba(255, 255, 255, 0.6)',
-                  borderRadius: 1,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  transition: 'all 0.15s',
-                }}
-              >
-                <TagGroupHeader
-                  group={group}
-                  tagCount={groupTags.length}
-                  isCollapsed={!!collapsedGroups[group.id]}
-                  isEditing={editingGroupId === group.id}
-                  editValue={editValue}
-                  onToggleCollapse={() => handleToggleCollapse(group.id)}
-                  onStartEdit={() => handleStartEdit(group)}
-                  onEditChange={setEditValue}
-                  onEditSubmit={() => void handleEditSubmit()}
-                  onEditCancel={handleEditCancel}
-                  onDelete={() => void handleDeleteGroup(group.id)}
-                  isProcessing={isProcessing}
-                />
-                <AnimatePresence initial={false}>
-                  {!collapsedGroups[group.id] && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                      style={{ overflow: 'hidden' }}
-                    >
-                      <DroppableGroup id={`group-${group.id}`} isEmpty={groupTags.length === 0}>
-                        {groupTags.length > 0 ? (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                            {groupTags.map((tag) => (
-                              <DraggableTag
-                                key={tag.id}
-                                tag={tag}
-                                selectedTag={selectedTag}
-                                onTagClick={onTagClick}
-                              />
-                            ))}
-                          </Box>
-                        ) : (
-                          <EmptyGroupPlaceholder message="Drag tags here" />
-                        )}
-                      </DroppableGroup>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Box>
+                group={group}
+                tags={groupTags}
+                isCollapsed={!!collapsedGroups[group.id]}
+                isEditing={editingGroupId === group.id}
+                editValue={editValue}
+                isProcessing={isProcessing}
+                selectedTag={selectedTag}
+                onToggleCollapse={() => handleToggleCollapse(group.id)}
+                onStartEdit={() => handleStartEdit(group)}
+                onEditChange={setEditValue}
+                onEditSubmit={() => void handleEditSubmit()}
+                onEditCancel={handleEditCancel}
+                onDelete={() => void handleDeleteGroup(group.id)}
+                onTagClick={onTagClick}
+              />
             ))}
 
             {/* Ungrouped tags */}
-            <motion.div
-              initial={false}
-              animate={{
-                height:
-                  ungroupedTags.length === 0 && activeTag === null && movingTagId === null
-                    ? 0
-                    : 'auto',
-                opacity:
-                  ungroupedTags.length === 0 && activeTag === null && movingTagId === null ? 0 : 1,
-              }}
-              transition={{ duration: 0.2 }}
-              style={{ overflow: 'hidden' }}
-            >
-              <Box
-                sx={{
-                  p: 1.5,
-                  bgcolor: 'rgba(255, 255, 255, 0.4)',
-                  borderRadius: 1,
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                }}
-              >
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    color: 'text.secondary',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    mb: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
-                  }}
-                >
-                  Ungrouped
-                  <Typography
-                    component="span"
-                    sx={{
-                      fontSize: '0.7rem',
-                      fontWeight: 400,
-                      color: 'text.disabled',
-                    }}
-                  >
-                    ({ungroupedTags.length})
-                  </Typography>
-                </Typography>
-                <DroppableGroup
-                  id="ungrouped"
-                  isEmpty={ungroupedTags.length === 0}
-                  emptyHeight={30}
-                >
-                  {ungroupedTags.length > 0 ? (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                      {ungroupedTags.map((tag) => (
-                        <DraggableTag
-                          key={tag.id}
-                          tag={tag}
-                          selectedTag={selectedTag}
-                          onTagClick={onTagClick}
-                        />
-                      ))}
-                    </Box>
-                  ) : (
-                    <EmptyGroupPlaceholder message="Drop here to remove from groups" />
-                  )}
-                </DroppableGroup>
-              </Box>
-            </motion.div>
+            <UngroupedTags
+              tags={ungroupedTags}
+              selectedTag={selectedTag}
+              activeTag={activeTag}
+              movingTagId={movingTagId}
+              onTagClick={onTagClick}
+            />
           </Box>
         ) : (
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.813rem' }}>
