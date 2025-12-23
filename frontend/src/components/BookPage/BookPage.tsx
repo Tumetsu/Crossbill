@@ -251,7 +251,7 @@ export const BookPage = () => {
         {/* Mobile Layout */}
         {!isDesktop && (
           <>
-            <Box sx={{ px: { xs: 2, sm: 3 }, py: 4, maxWidth: '800px', mx: 'auto' }}>
+            <Box sx={{ py: 8, maxWidth: '800px', mx: 'auto' }}>
               <BookTitle book={book} highlightCount={totalHighlights} />
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 3 }}>
                 <Box sx={{ flexGrow: 1 }}>
