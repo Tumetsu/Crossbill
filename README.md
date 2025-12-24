@@ -4,10 +4,10 @@
 </p>
 
 # Crossbill
+
 [![CI](https://github.com/Tumetsu/Crossbill/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Tumetsu/Crossbill/actions/workflows/ci.yml)
 
 A self-hosted web application for syncing, managing, and viewing book highlights from KOReader.
-
 
 ## Overview
 
@@ -28,10 +28,10 @@ Crossbill helps you centralize and manage your ebook highlights by providing:
 - Self-hosted - your data stays on your server
 
 ## Screenshots
+
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/262ba290-ed79-47ff-a8b3-aa6b3f3b59a3" />
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/397be7cd-541d-49be-975b-d5db3caab2c3" />
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/de548aa4-c721-4ff7-b008-3c6aa8de0bdd" />
-
 
 ## Installation
 
@@ -50,12 +50,13 @@ Each component has its own installation instructions:
 4. Start syncing your highlights!
 
 ## Example docker-compose
+
 An example `docker-compose.yml` for running Crossbill with PostgreSQL:
 
 ```yaml
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: crossbill-postgres
     restart: unless-stopped
     environment:
@@ -72,7 +73,7 @@ services:
       - crossbill-network
 
   app:
-    image: crossbill:latest # Replace with your built image or official image when available
+    image: tumetsu/crossbill:latest
     container_name: crossbill-app
     restart: unless-stopped
     pull_policy: always
