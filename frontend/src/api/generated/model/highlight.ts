@@ -4,6 +4,7 @@
  * crossbill API
  * OpenAPI spec version: 0.1.0
  */
+import type { Flashcard } from './flashcard';
 import type { HighlightChapter } from './highlightChapter';
 import type { HighlightChapterId } from './highlightChapterId';
 import type { HighlightChapterNumber } from './highlightChapterNumber';
@@ -39,6 +40,8 @@ export interface Highlight {
   chapter_id: HighlightChapterId;
   /** List of highlight tags for this highlight */
   highlight_tags?: HighlightTagInBook[];
+  /** List of flashcards for this highlight */
+  flashcards?: Flashcard[];
   created_at: string;
   updated_at: string;
 }

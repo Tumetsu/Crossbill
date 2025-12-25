@@ -8,7 +8,9 @@ import type { BookWithHighlightCountAuthor } from './bookWithHighlightCountAutho
 import type { BookWithHighlightCountCover } from './bookWithHighlightCountCover';
 import type { BookWithHighlightCountDescription } from './bookWithHighlightCountDescription';
 import type { BookWithHighlightCountIsbn } from './bookWithHighlightCountIsbn';
+import type { BookWithHighlightCountLanguage } from './bookWithHighlightCountLanguage';
 import type { BookWithHighlightCountLastViewed } from './bookWithHighlightCountLastViewed';
+import type { BookWithHighlightCountPageCount } from './bookWithHighlightCountPageCount';
 import type { TagInBook } from './tagInBook';
 
 /**
@@ -21,6 +23,8 @@ export interface BookWithHighlightCount {
   isbn: BookWithHighlightCountIsbn;
   cover: BookWithHighlightCountCover;
   description?: BookWithHighlightCountDescription;
+  language?: BookWithHighlightCountLanguage;
+  page_count?: BookWithHighlightCountPageCount;
   /**
    * Number of highlights for this book
    * @minimum 0

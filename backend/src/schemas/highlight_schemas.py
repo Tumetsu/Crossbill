@@ -7,7 +7,11 @@ from pydantic import BaseModel, Field, model_validator
 
 from src.schemas.book_schemas import BookCreate, TagInBook
 from src.schemas.bookmark_schemas import Bookmark
-from src.schemas.highlight_tag_schemas import HighlightTagGroupInBook, HighlightTagInBook
+from src.schemas.flashcard_schemas import Flashcard
+from src.schemas.highlight_tag_schemas import (
+    HighlightTagGroupInBook,
+    HighlightTagInBook,
+)
 
 
 class HighlightBase(BaseModel):
@@ -15,10 +19,14 @@ class HighlightBase(BaseModel):
 
     text: str = Field(..., min_length=1, description="Highlighted text")
     chapter: str | None = Field(None, max_length=500, description="Chapter name")
-    chapter_number: int | None = Field(None, ge=1, description="Chapter order number from TOC")
+    chapter_number: int | None = Field(
+        None, ge=1, description="Chapter order number from TOC"
+    )
     page: int | None = Field(None, ge=0, description="Page number")
     note: str | None = Field(None, description="Note/annotation")
-    datetime: str = Field(..., min_length=1, max_length=50, description="KOReader datetime format")
+    datetime: str = Field(
+        ..., min_length=1, max_length=50, description="KOReader datetime format"
+    )
 
 
 class HighlightCreate(HighlightBase):
@@ -34,7 +42,9 @@ class Highlight(HighlightBase):
     highlight_tags: list[HighlightTagInBook] = Field(
         default_factory=list, description="List of highlight tags for this highlight"
     )
-    flashcard_count: int = Field(default=0, description="Number of flashcards for this highlight")
+    flashcards: list[Flashcard] = Field(
+        default_factory=list, description="List of flashcards for this highlight"
+    )
     created_at: dt
     updated_at: dt
 
@@ -53,17 +63,12 @@ class Highlight(HighlightBase):
                 # Also extract chapter_number if not present
                 if "chapter_number" not in data or data["chapter_number"] is None:
                     data["chapter_number"] = getattr(chapter, "chapter_number", None)
-            # Compute flashcard_count if flashcards is present
-            if "flashcard_count" not in data and "flashcards" in data:
-                flashcards = data.get("flashcards")
-                if flashcards is not None:
-                    data["flashcard_count"] = len(flashcards)
         # It's an ORM model object - get attributes
         elif hasattr(data, "chapter"):
             chapter = data.chapter
-            flashcard_count = 0
+            flashcards = []
             if hasattr(data, "flashcards") and data.flashcards is not None:
-                flashcard_count = len(data.flashcards)
+                flashcards = list(data.flashcards)
             if chapter is not None and hasattr(chapter, "name"):
                 # Need to set chapter to the name string
                 # Since we can't modify the ORM object, create a dict
@@ -78,11 +83,11 @@ class Highlight(HighlightBase):
                     "created_at": data.created_at,
                     "updated_at": data.updated_at,
                     "highlight_tags": data.highlight_tags,
-                    "flashcard_count": flashcard_count,
+                    "flashcards": flashcards,
                     "chapter": chapter.name,
                     "chapter_number": getattr(chapter, "chapter_number", None),
                 }
-            # Chapter is None but we still need to include flashcard_count
+            # Chapter is None but we still need to include flashcards
             return {
                 "id": data.id,
                 "book_id": data.book_id,
@@ -94,7 +99,7 @@ class Highlight(HighlightBase):
                 "created_at": data.created_at,
                 "updated_at": data.updated_at,
                 "highlight_tags": data.highlight_tags,
-                "flashcard_count": flashcard_count,
+                "flashcards": flashcards,
                 "chapter": None,
                 "chapter_number": None,
             }
@@ -105,7 +110,9 @@ class HighlightUploadRequest(BaseModel):
     """Schema for uploading highlights from KOReader."""
 
     book: BookCreate = Field(..., description="Book metadata")
-    highlights: list[HighlightCreate] = Field(..., description="List of highlights to upload")
+    highlights: list[HighlightCreate] = Field(
+        ..., description="List of highlights to upload"
+    )
 
 
 class HighlightUploadResponse(BaseModel):
@@ -114,7 +121,9 @@ class HighlightUploadResponse(BaseModel):
     success: bool = Field(..., description="Whether the upload was successful")
     message: str = Field(..., description="Response message")
     book_id: int = Field(..., description="ID of the book")
-    highlights_created: int = Field(..., ge=0, description="Number of highlights created")
+    highlights_created: int = Field(
+        ..., ge=0, description="Number of highlights created"
+    )
     highlights_skipped: int = Field(
         ..., ge=0, description="Number of highlights skipped (duplicates)"
     )
@@ -125,7 +134,9 @@ class ChapterWithHighlights(BaseModel):
 
     id: int
     name: str
-    chapter_number: int | None = Field(None, description="Chapter order number from TOC")
+    chapter_number: int | None = Field(
+        None, description="Chapter order number from TOC"
+    )
     highlights: list[Highlight] = Field(
         default_factory=list, description="List of highlights in this chapter"
     )
@@ -146,7 +157,9 @@ class BookDetails(BaseModel):
     description: str | None = None
     language: str | None = None
     page_count: int | None = None
-    tags: list[TagInBook] = Field(default_factory=list, description="List of tags for this book")
+    tags: list[TagInBook] = Field(
+        default_factory=list, description="List of tags for this book"
+    )
     highlight_tags: list[HighlightTagInBook] = Field(
         default_factory=list, description="List of highlight tags for this book"
     )
@@ -195,7 +208,9 @@ class HighlightSearchResult(BaseModel):
     book_author: str | None
     chapter_id: int | None
     chapter_name: str | None
-    chapter_number: int | None = Field(None, description="Chapter order number from TOC")
+    chapter_number: int | None = Field(
+        None, description="Chapter order number from TOC"
+    )
     highlight_tags: list[HighlightTagInBook] = Field(
         default_factory=list, description="List of highlight tags for this highlight"
     )
