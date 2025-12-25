@@ -21,6 +21,8 @@ import type {
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import type {
+  FlashcardCreateRequest,
+  FlashcardCreateResponse,
   HTTPValidationError,
   HighlightNoteUpdate,
   HighlightNoteUpdateResponse,
@@ -577,6 +579,113 @@ export const useDeleteTagGroupApiV1HighlightsTagGroupTagGroupIdDelete = <
 > => {
   const mutationOptions =
     getDeleteTagGroupApiV1HighlightsTagGroupTagGroupIdDeleteMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Create a flashcard for a highlight.
+
+Creates a flashcard that is associated with a specific highlight.
+The flashcard will also be linked to the highlight's book.
+
+Args:
+    highlight_id: ID of the highlight
+    request: Request containing question and answer
+    db: Database session
+
+Returns:
+    Created flashcard
+
+Raises:
+    HTTPException: If highlight not found or creation fails
+ * @summary Create Flashcard For Highlight
+ */
+export const createFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPost = (
+  highlightId: number,
+  flashcardCreateRequest: FlashcardCreateRequest,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<FlashcardCreateResponse>({
+    url: `/api/v1/highlights/${highlightId}/flashcards`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: flashcardCreateRequest,
+    signal,
+  });
+};
+
+export const getCreateFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPostMutationOptions =
+  <TError = HTTPValidationError, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof createFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPost>
+      >,
+      TError,
+      { highlightId: number; data: FlashcardCreateRequest },
+      TContext
+    >;
+  }): UseMutationOptions<
+    Awaited<ReturnType<typeof createFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPost>>,
+    TError,
+    { highlightId: number; data: FlashcardCreateRequest },
+    TContext
+  > => {
+    const mutationKey = ['createFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPost'];
+    const { mutation: mutationOptions } = options
+      ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+        ? options
+        : { ...options, mutation: { ...options.mutation, mutationKey } }
+      : { mutation: { mutationKey } };
+
+    const mutationFn: MutationFunction<
+      Awaited<
+        ReturnType<typeof createFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPost>
+      >,
+      { highlightId: number; data: FlashcardCreateRequest }
+    > = (props) => {
+      const { highlightId, data } = props ?? {};
+
+      return createFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPost(highlightId, data);
+    };
+
+    return { mutationFn, ...mutationOptions };
+  };
+
+export type CreateFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPostMutationResult =
+  NonNullable<
+    Awaited<ReturnType<typeof createFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPost>>
+  >;
+export type CreateFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPostMutationBody =
+  FlashcardCreateRequest;
+export type CreateFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPostMutationError =
+  HTTPValidationError;
+
+/**
+ * @summary Create Flashcard For Highlight
+ */
+export const useCreateFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPost = <
+  TError = HTTPValidationError,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<typeof createFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPost>
+      >,
+      TError,
+      { highlightId: number; data: FlashcardCreateRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof createFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPost>>,
+  TError,
+  { highlightId: number; data: FlashcardCreateRequest },
+  TContext
+> => {
+  const mutationOptions =
+    getCreateFlashcardForHighlightApiV1HighlightsHighlightIdFlashcardsPostMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

@@ -73,10 +73,9 @@ class BookService:
                     page=h.page,
                     note=h.note,
                     datetime=h.datetime,
-                    highlight_tags=[
-                        schemas.HighlightTagInBook.model_validate(tag) for tag in h.highlight_tags
+                    flashcards=[
+                        schemas.Flashcard.model_validate(fc) for fc in h.flashcards
                     ],
-                    flashcard_count=len(h.flashcards) if h.flashcards else 0,
                     created_at=h.created_at,
                     updated_at=h.updated_at,
                 )
@@ -175,7 +174,9 @@ class BookService:
             raise BookNotFoundError(book_id)
 
         # Soft delete highlights
-        deleted_count = self.highlight_repo.soft_delete_by_ids(book_id, user_id, highlight_ids)
+        deleted_count = self.highlight_repo.soft_delete_by_ids(
+            book_id, user_id, highlight_ids
+        )
 
         # Commit the changes
         self.db.commit()

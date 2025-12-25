@@ -8,7 +8,9 @@ import type { BookDetailsAuthor } from './bookDetailsAuthor';
 import type { BookDetailsCover } from './bookDetailsCover';
 import type { BookDetailsDescription } from './bookDetailsDescription';
 import type { BookDetailsIsbn } from './bookDetailsIsbn';
+import type { BookDetailsLanguage } from './bookDetailsLanguage';
 import type { BookDetailsLastViewed } from './bookDetailsLastViewed';
+import type { BookDetailsPageCount } from './bookDetailsPageCount';
 import type { Bookmark } from './bookmark';
 import type { ChapterWithHighlights } from './chapterWithHighlights';
 import type { HighlightTagGroupInBook } from './highlightTagGroupInBook';
@@ -25,6 +27,8 @@ export interface BookDetails {
   isbn: BookDetailsIsbn;
   cover: BookDetailsCover;
   description?: BookDetailsDescription;
+  language?: BookDetailsLanguage;
+  page_count?: BookDetailsPageCount;
   /** List of tags for this book */
   tags?: TagInBook[];
   /** List of highlight tags for this book */

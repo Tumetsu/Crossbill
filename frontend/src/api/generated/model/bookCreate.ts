@@ -8,6 +8,9 @@ import type { BookCreateAuthor } from './bookCreateAuthor';
 import type { BookCreateCover } from './bookCreateCover';
 import type { BookCreateDescription } from './bookCreateDescription';
 import type { BookCreateIsbn } from './bookCreateIsbn';
+import type { BookCreateKeywords } from './bookCreateKeywords';
+import type { BookCreateLanguage } from './bookCreateLanguage';
+import type { BookCreatePageCount } from './bookCreatePageCount';
 
 /**
  * Schema for creating a Book.
@@ -27,4 +30,10 @@ export interface BookCreate {
   cover?: BookCreateCover;
   /** Book description from ebook metadata */
   description?: BookCreateDescription;
+  /** Language code from ebook metadata */
+  language?: BookCreateLanguage;
+  /** Total page count from ebook metadata */
+  page_count?: BookCreatePageCount;
+  /** Keywords from ebook metadata (will be converted to tags) */
+  keywords?: BookCreateKeywords;
 }
