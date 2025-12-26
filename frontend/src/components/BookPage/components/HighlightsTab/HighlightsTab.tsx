@@ -4,6 +4,7 @@ import type { BookDetails, Bookmark, Highlight, HighlightTagInBook } from '@/api
 import { scrollToElementWithHighlight } from '@/components/common/animations/scrollUtils.ts';
 import { SortIcon } from '@/components/common/Icons.tsx';
 import { SearchBar } from '@/components/common/SearchBar.tsx';
+import { ThreeColumnLayout } from '@/components/layout/Layouts.tsx';
 import { Box, IconButton, Tooltip } from '@mui/material';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { keyBy } from 'lodash';
@@ -340,14 +341,7 @@ const DesktopHighlightsContent = ({
   onBookmarkClick,
   onChapterClick,
 }: DesktopHighlightsContentProps) => (
-  <Box
-    sx={{
-      display: 'grid',
-      gridTemplateColumns: '280px 1fr 280px',
-      gap: 4,
-      alignItems: 'start',
-    }}
-  >
+  <ThreeColumnLayout>
     {/* Left Column - Tags */}
     <HighlightTags
       tags={tags}
@@ -399,7 +393,7 @@ const DesktopHighlightsContent = ({
       />
       <ChapterNav chapters={chapters} onChapterClick={onChapterClick} />
     </Box>
-  </Box>
+  </ThreeColumnLayout>
 );
 
 // Export types and data needed by MobileNavigation

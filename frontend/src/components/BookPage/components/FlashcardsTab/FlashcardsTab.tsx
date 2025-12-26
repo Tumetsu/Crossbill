@@ -9,6 +9,7 @@ import { ChapterNav } from '@/components/BookPage/components/HighlightsTab/Chapt
 import { scrollToElementWithHighlight } from '@/components/common/animations/scrollUtils.ts';
 import { SortIcon } from '@/components/common/Icons.tsx';
 import { SearchBar } from '@/components/common/SearchBar.tsx';
+import { ThreeColumnLayout } from '@/components/layout/Layouts.tsx';
 import { Box, IconButton, Tooltip } from '@mui/material';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { flatMap } from 'lodash';
@@ -311,14 +312,7 @@ const DesktopFlashcardsContent = ({
   onEditFlashcard,
   onChapterClick,
 }: DesktopFlashcardsContentProps) => (
-  <Box
-    sx={{
-      display: 'grid',
-      gridTemplateColumns: '280px 1fr 280px',
-      gap: 4,
-      alignItems: 'start',
-    }}
-  >
+  <ThreeColumnLayout>
     {/* Left Column - Tags (filtered to those with flashcards) */}
     <HighlightTags
       tags={tags}
@@ -364,7 +358,7 @@ const DesktopFlashcardsContent = ({
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <ChapterNav chapters={navChapters} onChapterClick={onChapterClick} />
     </Box>
-  </Box>
+  </ThreeColumnLayout>
 );
 
 // Export hook for getting flashcard data needed by MobileNavigation
