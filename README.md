@@ -69,6 +69,7 @@ services:
       ENVIRONMENT: production
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      CORS_ORIGINS: "https://yourdomain.com"
       SECRET_KEY: ${SECRET_KEY}
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
       ALLOW_USER_REGISTRATIONS: false
