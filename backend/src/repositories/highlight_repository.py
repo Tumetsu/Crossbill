@@ -144,8 +144,10 @@ class HighlightRepository:
         )
         return self.db.execute(stmt).scalars().all()
 
-    def find_by_chapter(self, chapter_id: int, user_id: int) -> Sequence[models.Highlight]:
-        """Find all non-deleted highlights for a chapter, ordered by datetime."""
+    def find_by_book_with_relationships(
+        self, book_id: int, user_id: int
+    ) -> Sequence[models.Highlight]:
+        """Find all non-deleted highlights for a book with relationships loaded, ordered by datetime."""
         stmt = (
             select(models.Highlight)
             .options(
@@ -153,7 +155,7 @@ class HighlightRepository:
                 selectinload(models.Highlight.highlight_tags),
             )
             .where(
-                models.Highlight.chapter_id == chapter_id,
+                models.Highlight.book_id == book_id,
                 models.Highlight.user_id == user_id,
                 models.Highlight.deleted_at.is_(None),
             )

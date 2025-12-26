@@ -1,6 +1,7 @@
 """Service layer for book-related business logic."""
 
 import logging
+from collections import defaultdict
 from pathlib import Path
 
 from fastapi import UploadFile
@@ -51,54 +52,50 @@ class BookService:
         if not book:
             raise BookNotFoundError(book_id)
 
-        # Get chapters for the book
         chapters = self.chapter_repo.get_by_book_id(book_id, user_id)
-
-        # Get highlight tags with active associations only
         highlight_tags = self.highlight_tag_repo.get_by_book_id(book_id, user_id)
+        all_highlights = self.highlight_repo.find_by_book_with_relationships(book_id, user_id)
 
-        # Get highlights for each chapter and build response
+        # Group highlights by chapter_id
+        highlights_by_chapter: dict[int | None, list[schemas.Highlight]] = defaultdict(list)
+        chapter_lookup = {chapter.id: chapter for chapter in chapters}
+
+        for h in all_highlights:
+            chapter = chapter_lookup.get(h.chapter_id) if h.chapter_id is not None else None
+            highlight_schema = schemas.Highlight(
+                id=h.id,
+                book_id=h.book_id,
+                chapter_id=h.chapter_id,
+                text=h.text,
+                chapter=chapter.name if chapter else None,
+                chapter_number=chapter.chapter_number if chapter else None,
+                page=h.page,
+                note=h.note,
+                datetime=h.datetime,
+                flashcards=[schemas.Flashcard.model_validate(fc) for fc in h.flashcards],
+                highlight_tags=[
+                    schemas.HighlightTagInBook.model_validate(ht) for ht in h.highlight_tags
+                ],
+                created_at=h.created_at,
+                updated_at=h.updated_at,
+            )
+            highlights_by_chapter[h.chapter_id].append(highlight_schema)
+
         chapters_with_highlights = []
         for chapter in chapters:
-            highlights = self.highlight_repo.find_by_chapter(chapter.id, user_id)
-
-            # Convert highlights to schema
-            highlight_schemas = [
-                schemas.Highlight(
-                    id=h.id,
-                    book_id=h.book_id,
-                    chapter_id=h.chapter_id,
-                    text=h.text,
-                    chapter=chapter.name,  # Include chapter name for display
-                    chapter_number=chapter.chapter_number,  # Include chapter number
-                    page=h.page,
-                    note=h.note,
-                    datetime=h.datetime,
-                    flashcards=[schemas.Flashcard.model_validate(fc) for fc in h.flashcards],
-                    highlight_tags=[
-                        schemas.HighlightTagInBook.model_validate(ht) for ht in h.highlight_tags
-                    ],
-                    created_at=h.created_at,
-                    updated_at=h.updated_at,
-                )
-                for h in highlights
-            ]
-
             chapter_with_highlights = schemas.ChapterWithHighlights(
                 id=chapter.id,
                 name=chapter.name,
                 chapter_number=chapter.chapter_number,
-                highlights=highlight_schemas,
+                highlights=highlights_by_chapter[chapter.id],
                 created_at=chapter.created_at,
                 updated_at=chapter.updated_at,
             )
             chapters_with_highlights.append(chapter_with_highlights)
 
-        # Get bookmarks for the book
         bookmarks = self.bookmark_repo.get_by_book_id(book_id, user_id)
         bookmark_schemas = [schemas.Bookmark.model_validate(b) for b in bookmarks]
 
-        # Create and return the response
         return schemas.BookDetails(
             id=book.id,
             title=book.title,
