@@ -18,7 +18,9 @@ class TagService:
         self.tag_repo = repositories.TagRepository(db)
         self.book_repo = repositories.BookRepository(db)
 
-    def update_book_tags(self, book: models.Book, tag_names: list[str], user_id: int) -> models.Book:
+    def update_book_tags(
+        self, book: models.Book, tag_names: list[str], user_id: int
+    ) -> models.Book:
         """
         Update the tags associated with a book.
 
