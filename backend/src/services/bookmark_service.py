@@ -36,33 +36,31 @@ class BookmarkService:
             BookNotFoundError: If book is not found
             ValidationError: If highlight doesn't exist or doesn't belong to the book
         """
-        # Validate book exists
-        book = self.book_repo.get_by_id(book_id, user_id)
-        if not book:
+        validation_result = self.bookmark_repo.validate_and_get_existing_bookmark(
+            book_id, highlight_id, user_id
+        )
+
+        # Check validation results
+        if not validation_result.book_exists:
             raise BookNotFoundError(book_id)
 
-        # Validate highlight exists and belongs to the book
-        highlight = self.highlight_repo.get_by_id(highlight_id, user_id)
-        if not highlight:
+        if not validation_result.highlight_exists:
             raise ValidationError(f"Highlight with id {highlight_id} not found", status_code=404)
 
-        if highlight.book_id != book_id:
+        if not validation_result.highlight_belongs_to_book:
             raise ValidationError(
                 f"Highlight {highlight_id} does not belong to book {book_id}",
                 status_code=400,
             )
 
-        # Check if bookmark already exists
-        existing_bookmark = self.bookmark_repo.get_by_book_and_highlight(
-            book_id, highlight_id, user_id
-        )
-        if existing_bookmark:
+        # Return existing bookmark if one already exists
+        if validation_result.existing_bookmark:
             logger.info(
                 f"Bookmark already exists for book {book_id}, highlight {highlight_id}, returning existing"
             )
-            return schemas.Bookmark.model_validate(existing_bookmark)
+            return schemas.Bookmark.model_validate(validation_result.existing_bookmark)
 
-        # Create bookmark
+        # Create new bookmark
         bookmark = self.bookmark_repo.create(book_id, highlight_id, user_id)
         self.db.commit()
 
