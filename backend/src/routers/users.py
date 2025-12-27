@@ -1,7 +1,9 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from src.database import DatabaseSession
 from src.exceptions import CrossbillError
@@ -12,10 +14,14 @@ from src.services.users_service import UserService
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/users", tags=["users"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/register")
-async def register(register_data: UserRegisterRequest, db: DatabaseSession) -> Token:
+@limiter.limit("5/minute")
+async def register(
+    request: Request, register_data: UserRegisterRequest, db: DatabaseSession
+) -> Token:
     """
     Register a new user account.
 

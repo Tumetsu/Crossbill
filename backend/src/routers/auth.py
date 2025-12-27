@@ -2,8 +2,10 @@ import logging
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from starlette import status
 
 from src.database import DatabaseSession
@@ -16,11 +18,15 @@ from src.services.auth_service import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/login")
+@limiter.limit("5/minute")
 async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: DatabaseSession
+    request: Request,
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: DatabaseSession,
 ) -> Token:
     # OAuth2PasswordRequestForm uses 'username' field, but we use it for email
     user = authenticate_user(form_data.username, form_data.password, db)
