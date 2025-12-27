@@ -4,7 +4,7 @@ import logging
 from collections import defaultdict
 from pathlib import Path
 
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from src import repositories, schemas
@@ -15,6 +15,48 @@ logger = logging.getLogger(__name__)
 
 # Directory for book cover images
 COVERS_DIR = Path(__file__).parent.parent.parent / "book-covers"
+
+# Maximum cover image size (5MB)
+MAX_COVER_SIZE = 5 * 1024 * 1024
+
+# Magic bytes for image file type validation
+IMAGE_SIGNATURES = {
+    b"\xff\xd8\xff": "jpeg",
+    b"\x89PNG\r\n\x1a\n": "png",
+    b"RIFF": "webp",  # WebP starts with RIFF, followed by size, then WEBP
+}
+
+# WebP header requires at least 12 bytes for validation
+WEBP_MIN_HEADER_SIZE = 12
+
+
+def _validate_image_type(content: bytes) -> str | None:
+    """
+    Validate image type by checking magic bytes.
+
+    Args:
+        content: The file content as bytes
+
+    Returns:
+        Image type (jpeg, png, webp) or None if not recognized
+    """
+    # Check JPEG
+    if content.startswith(b"\xff\xd8\xff"):
+        return "jpeg"
+
+    # Check PNG
+    if content.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "png"
+
+    # Check WebP (RIFF header followed by WEBP)
+    if (
+        content.startswith(b"RIFF")
+        and len(content) > WEBP_MIN_HEADER_SIZE
+        and content[8:12] == b"WEBP"
+    ):
+        return "webp"
+
+    return None
 
 
 class BookService:
@@ -196,13 +238,14 @@ class BookService:
 
         Args:
             book_id: ID of the book
-            cover: Uploaded image file (JPEG, PNG, etc.)
+            cover: Uploaded image file (JPEG, PNG, or WebP)
+            user_id: ID of the user uploading the cover
 
         Returns:
             CoverUploadResponse with success status and cover URL
 
         Raises:
-            HTTPException: If book is not found or upload fails
+            HTTPException: If book is not found, file validation fails, or upload fails
         """
         # Verify book exists
         book = self.book_repo.get_by_id(book_id, user_id)
@@ -210,15 +253,27 @@ class BookService:
         if not book:
             raise BookNotFoundError(book_id)
 
-        # Ensure covers directory exists
+        # Check content-type header
+        allowed_types = {"image/jpeg", "image/png", "image/webp"}
+        if cover.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400, detail="Only JPEG, PNG, and WebP images are allowed"
+            )
+
+        # Read with size limit
+        content = cover.file.read(MAX_COVER_SIZE + 1)
+        if len(content) > MAX_COVER_SIZE:
+            raise HTTPException(status_code=400, detail="File too large (max 5MB)")
+
+        # Verify magic bytes
+        file_type = _validate_image_type(content)
+        if file_type not in {"jpeg", "png", "webp"}:
+            raise HTTPException(status_code=400, detail="Invalid image file")
+
         COVERS_DIR.mkdir(parents=True, exist_ok=True)
 
-        # Save the uploaded file
         cover_filename = f"{book_id}.jpg"
         cover_path = COVERS_DIR / cover_filename
-
-        # Read and write the file content
-        content = cover.file.read()
         cover_path.write_bytes(content)
 
         logger.info(f"Successfully saved cover for book {book_id} at {cover_path}")
