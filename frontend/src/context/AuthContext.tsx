@@ -34,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const performTokenRefreshRef = useRef<(() => Promise<boolean>) | null>(null);
 
   const loginMutation = useLoginApiV1AuthLoginPost();
   const registerMutation = useMutation(getRegisterApiV1UsersRegisterPostMutationOptions());
@@ -46,30 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Schedule token refresh at 75% of token lifetime (or 1 min before expiry)
-  const scheduleTokenRefresh = useCallback(
-    (expiresIn: number) => {
-      clearRefreshTimeout();
-
-      // Refresh at 75% of token lifetime or 1 minute before expiry, whichever is earlier
-      const refreshTime = Math.min(expiresIn * 0.75, expiresIn - 60) * 1000;
-      if (refreshTime <= 0) return;
-
-      refreshTimeoutRef.current = setTimeout(async () => {
-        try {
-          await silentRefresh();
-        } catch {
-          // If refresh fails, user will need to re-authenticate
-          clearTokens();
-          setUser(null);
-        }
-      }, refreshTime);
-    },
-    [clearRefreshTimeout]
-  );
-
-  // Silent refresh using httpOnly cookie
-  const silentRefresh = useCallback(async (): Promise<boolean> => {
+  // Perform token refresh using httpOnly cookie and schedule next refresh
+  const performTokenRefresh = useCallback(async (): Promise<boolean> => {
     try {
       const response = await AXIOS_INSTANCE.post<{
         access_token: string;
@@ -79,14 +58,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         withCredentials: true,
       });
 
-      setAccessToken(response.data.access_token, response.data.expires_in);
-      scheduleTokenRefresh(response.data.expires_in);
+      const { access_token, expires_in } = response.data;
+      setAccessToken(access_token, expires_in);
+
+      // Schedule next refresh at 75% of token lifetime
+      const refreshTime = expires_in * 0.75 * 1000;
+      if (refreshTime > 0) {
+        clearRefreshTimeout();
+        refreshTimeoutRef.current = setTimeout(() => {
+          void performTokenRefreshRef.current?.();
+        }, refreshTime);
+      }
+
       return true;
     } catch {
       clearTokens();
+      setUser(null);
       return false;
     }
-  }, [scheduleTokenRefresh]);
+  }, [clearRefreshTimeout]);
+
+  // Keep ref up-to-date with latest function
+  useEffect(() => {
+    performTokenRefreshRef.current = performTokenRefresh;
+  }, [performTokenRefresh]);
+
+  // Helper to schedule next refresh (for login/register)
+  const scheduleNextRefresh = useCallback(
+    (expiresIn: number) => {
+      const refreshTime = expiresIn * 0.75 * 1000;
+      if (refreshTime > 0) {
+        clearRefreshTimeout();
+        refreshTimeoutRef.current = setTimeout(() => {
+          void performTokenRefreshRef.current?.();
+        }, refreshTime);
+      }
+    },
+    [clearRefreshTimeout]
+  );
 
   const logout = useCallback(async () => {
     clearRefreshTimeout();
@@ -120,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       // Try to restore session from httpOnly cookie
-      const success = await silentRefresh();
+      const success = await performTokenRefresh();
       if (success) {
         try {
           const userData = await getMeApiV1UsersMeGet();
@@ -140,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       clearRefreshTimeout();
     };
-  }, [silentRefresh, clearRefreshTimeout]);
+  }, [clearRefreshTimeout, performTokenRefresh]);
 
   const login = async (email: string, password: string) => {
     const response = await loginMutation.mutateAsync({
@@ -149,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Store token in memory only
     setAccessToken(response.access_token, response.expires_in);
-    scheduleTokenRefresh(response.expires_in);
+    scheduleNextRefresh(response.expires_in);
 
     // Fetch user details after login
     const userData = await getMeApiV1UsersMeGet();
@@ -163,7 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Store token in memory only
     setAccessToken(response.access_token, response.expires_in);
-    scheduleTokenRefresh(response.expires_in);
+    scheduleNextRefresh(response.expires_in);
 
     // Fetch user details after registration
     const userData = await getMeApiV1UsersMeGet();
