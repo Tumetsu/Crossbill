@@ -18,7 +18,7 @@ Crossbill helps you centralize and manage your ebook highlights by providing:
 - **Web Frontend**: Modern React interface for browsing, editing, and organizing your highlights
 - **KOReader Plugin**: Syncs highlights directly from your KOReader e-reader
 - **Obsidian Plugin**: Integrate highlights into your Obsidian notes
-- **Anki Plugin**: Integrate highlights into your Anki flash cards
+- [**Anki Plugin**: Integrate highlights into your Anki flash cards](https://ankiweb.net/shared/info/1205712943)
 
 ## Features
 
