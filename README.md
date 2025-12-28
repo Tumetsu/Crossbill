@@ -18,7 +18,7 @@ Crossbill helps you centralize and manage your ebook highlights by providing:
 - **Web Frontend**: Modern React interface for browsing, editing, and organizing your highlights
 - **KOReader Plugin**: Syncs highlights directly from your KOReader e-reader
 - **Obsidian Plugin**: Integrate highlights into your Obsidian notes
-- [**Anki Plugin**: Integrate highlights into your Anki flash cards](https://ankiweb.net/shared/info/1205712943)
+- [**Anki Plugin**: Integrate highlights into your Anki flash cards](https://github.com/Crossbill-Highlights/anki-addon)
 
 ## Features
 
@@ -36,7 +36,8 @@ Crossbill helps you centralize and manage your ebook highlights by providing:
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/de548aa4-c721-4ff7-b008-3c6aa8de0bdd" />
 
 ## Installation
-Easiest way to install and run Crossbill is by using  `docker-compose.yml` with PostgreSQL:
+
+Easiest way to install and run Crossbill is by using `docker-compose.yml` with PostgreSQL:
 
 ```yaml
 services:
@@ -102,6 +103,7 @@ networks:
 Then install the Koreader [plugin on your e-reader](clients/koreader-plugin/crossbill.koplugin/README.md).
 
 ## Development
+
 Each component has its own installation instructions for development:
 
 - **Backend**: See [backend/README.md](backend/README.md)

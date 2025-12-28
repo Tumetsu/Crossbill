@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version_bump:
-        description: 'Version bump type'
+        description: "Version bump type"
         required: true
-        default: 'minor'
+        default: "minor"
         type: choice
         options:
           - patch
@@ -31,7 +31,7 @@ jobs:
         if: matrix.component == 'frontend'
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
 
       - name: Cache npm dependencies
         if: matrix.component == 'frontend'
@@ -71,7 +71,7 @@ jobs:
         if: matrix.component == 'backend'
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install Poetry
         if: matrix.component == 'backend'
@@ -133,7 +133,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
 
       - name: Configure Git
         run: |
@@ -185,10 +185,6 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
 
-          # Update Anki manifest.json
-          jq --arg version "$VERSION" '.version = $version' clients/anki-plugin/manifest.json > clients/anki-plugin/manifest.json.tmp
-          mv clients/anki-plugin/manifest.json.tmp clients/anki-plugin/manifest.json
-
           # Update KoReader _meta.lua - add or update version field
           META_FILE="clients/koreader-plugin/crossbill.koplugin/_meta.lua"
           if grep -q "version = " "$META_FILE"; then
@@ -200,7 +196,6 @@ jobs:
           fi
 
           # Commit version updates
-          git add clients/anki-plugin/manifest.json clients/koreader-plugin/crossbill.koplugin/_meta.lua
           git commit -m "chore: update plugin versions to $VERSION"
           git push origin main
 
@@ -238,15 +233,6 @@ jobs:
           cd ..
           rm -rf temp
 
-      - name: Package Anki plugin
-        run: |
-          cd clients/anki-plugin
-          # Remove pycache if it exists
-          find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
-          # Create zip excluding meta.json and pycache
-          zip -r ../../crossbill.ankiaddon * -x "meta.json" -x "*/__pycache__/*" -x "__pycache__/*"
-          cd ../..
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -255,7 +241,6 @@ jobs:
           generate_release_notes: true
           files: |
             koreader-plugin.zip
-            crossbill.ankiaddon
           body: |
             ## Docker Image
             ```bash
@@ -264,6 +249,5 @@ jobs:
 
             ## Plugin Downloads
             - **KoReader Plugin**: Download `koreader-plugin.zip` below
-            - **Anki Plugin**: Download `crossbill.ankiaddon` below and install via Anki's "Install from file" option
           draft: false
           prerelease: false
