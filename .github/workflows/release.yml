@@ -181,6 +181,29 @@ jobs:
           git commit -m "chore: bump version to $NEW_VERSION"
           git push origin main
 
+      - name: Update plugin versions
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Update Anki manifest.json
+          jq --arg version "$VERSION" '.version = $version' clients/anki-plugin/manifest.json > clients/anki-plugin/manifest.json.tmp
+          mv clients/anki-plugin/manifest.json.tmp clients/anki-plugin/manifest.json
+
+          # Update KoReader _meta.lua - add or update version field
+          META_FILE="clients/koreader-plugin/crossbill.koplugin/_meta.lua"
+          if grep -q "version = " "$META_FILE"; then
+            # Update existing version
+            sed -i 's/version = ".*"/version = "'"$VERSION"'"/' "$META_FILE"
+          else
+            # Add new version field after description
+            sed -i '/description = _(\[\[.*\]\]),/a\    version = "'"$VERSION"'",' "$META_FILE"
+          fi
+
+          # Commit version updates
+          git add clients/anki-plugin/manifest.json clients/koreader-plugin/crossbill.koplugin/_meta.lua
+          git commit -m "chore: update plugin versions to $VERSION"
+          git push origin main
+
       - name: Create and push tag
         run: |
           git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
@@ -206,16 +229,38 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Package KoReader plugin
+        run: |
+          cd clients/koreader-plugin/crossbill.koplugin
+          zip -r ../../../koreader-plugin.zip *
+          cd ../../..
+
+      - name: Package Anki plugin
+        run: |
+          cd clients/anki-plugin
+          # Remove pycache if it exists
+          find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+          # Create zip excluding meta.json and pycache
+          zip -r ../../crossbill.ankiaddon * -x "meta.json" -x "*/__pycache__/*" -x "__pycache__/*"
+          cd ../..
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
           generate_release_notes: true
+          files: |
+            koreader-plugin.zip
+            crossbill.ankiaddon
           body: |
             ## Docker Image
             ```bash
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/crossbill:v${{ steps.version.outputs.version }}
             ```
+
+            ## Plugin Downloads
+            - **KoReader Plugin**: Download `koreader-plugin.zip` below
+            - **Anki Plugin**: Download `crossbill.ankiaddon` below and install via Anki's "Install from file" option
           draft: false
           prerelease: false
