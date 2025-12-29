@@ -181,24 +181,6 @@ jobs:
           git commit -m "chore: bump version to $NEW_VERSION"
           git push origin main
 
-      - name: Update plugin versions
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-
-          # Update KoReader _meta.lua - add or update version field
-          META_FILE="clients/koreader-plugin/crossbill.koplugin/_meta.lua"
-          if grep -q "version = " "$META_FILE"; then
-            # Update existing version
-            sed -i 's/version = ".*"/version = "'"$VERSION"'"/' "$META_FILE"
-          else
-            # Add new version field after description
-            sed -i '/description = _(\[\[.*\]\]),/a\    version = "'"$VERSION"'",' "$META_FILE"
-          fi
-
-          # Commit version updates
-          git commit -m "chore: update plugin versions to $VERSION"
-          git push origin main
-
       - name: Create and push tag
         run: |
           git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
@@ -224,30 +206,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Package KoReader plugin
-        run: |
-          mkdir -p temp/crossbill.plugin
-          cp -r clients/koreader-plugin/crossbill.koplugin/* temp/crossbill.plugin/
-          cd temp
-          zip -r ../koreader-plugin.zip crossbill.plugin
-          cd ..
-          rm -rf temp
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
           generate_release_notes: true
-          files: |
-            koreader-plugin.zip
           body: |
             ## Docker Image
             ```bash
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/crossbill:v${{ steps.version.outputs.version }}
             ```
-
-            ## Plugin Downloads
-            - **KoReader Plugin**: Download `koreader-plugin.zip` below
           draft: false
           prerelease: false
