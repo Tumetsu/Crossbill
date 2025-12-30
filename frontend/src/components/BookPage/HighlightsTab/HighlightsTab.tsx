@@ -7,6 +7,8 @@ import type {
   Highlight,
   HighlightTagInBook,
 } from '@/api/generated/model';
+import { useHighlightModal } from '@/components/BookPage/HighlightsTab/hooks/useHighlightModal.ts';
+import { groupSearchResultsIntoChapters } from '@/components/BookPage/HighlightsTab/utils/groupSearchResults.ts';
 import { SortIcon } from '@/components/common/Icons.tsx';
 import { SearchBar } from '@/components/common/SearchBar.tsx';
 import { ThreeColumnLayout } from '@/components/layout/Layouts.tsx';
@@ -14,13 +16,11 @@ import { Box, IconButton, Tooltip } from '@mui/material';
 import { useSearch } from '@tanstack/react-router';
 import { keyBy } from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
-import { useHighlightModal } from '@/components/BookPage/HighlightsTab/hooks/useHighlightModal.ts';
-import { groupSearchResultsIntoChapters } from '@/components/BookPage/HighlightsTab/utils/groupSearchResults.ts';
 import { BookmarkList } from '../navigation/BookmarkList.tsx';
+import { ChapterNav, ChapterNavigationData } from '../navigation/ChapterNav.tsx';
 import { HighlightTagsList } from '../navigation/HighlightTagsList.tsx';
 import { MobileNavigation } from '../navigation/MobileNavigation.tsx';
 import { HighlightsList, type ChapterData } from './HighlightsList.tsx';
-import { ChapterNav, ChapterNavigationData } from '../navigation/ChapterNav.tsx';
 import { HighlightViewModal } from './HighlightViewModal';
 
 interface HighlightsTabProps {
