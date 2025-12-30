@@ -398,11 +398,11 @@ const DesktopHighlightsContent = ({
 
 // Export types and data needed by MobileNavigation
 // eslint-disable-next-line react-refresh/only-export-components
-export const useHighlightsTabData = (book: BookDetails) => {
-  const { search: urlSearch, tagId: urlTagId } = useSearch({ from: '/book/$bookId' });
-  const searchText = urlSearch || '';
-  const selectedTagId = urlTagId;
-
+export const useHighlightsTabData = (
+  book: BookDetails,
+  searchText = '',
+  selectedTagId: number | undefined
+) => {
   const filteredChapters = useMemo(() => {
     const chaptersWithHighlights = (book.chapters || []).filter(
       (chapter) => chapter.highlights && chapter.highlights.length > 0

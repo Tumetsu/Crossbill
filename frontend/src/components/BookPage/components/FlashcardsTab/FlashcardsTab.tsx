@@ -364,10 +364,7 @@ const DesktopFlashcardsContent = ({
 
 // Export hook for getting flashcard data needed by MobileNavigation
 // eslint-disable-next-line react-refresh/only-export-components
-export const useFlashcardsTabData = (book: BookDetails) => {
-  const { tagId: urlTagId } = useSearch({ from: '/book/$bookId' });
-  const selectedTagId = urlTagId;
-
+export const useFlashcardsTabData = (book: BookDetails, selectedTagId: number | undefined) => {
   const bookChapters = book.chapters;
   const bookHighlightTags = book.highlight_tags;
 

@@ -194,11 +194,9 @@ interface MobileNavigationWrapperProps {
 
 const MobileNavigationWrapper = ({ book, activeTab }: MobileNavigationWrapperProps) => {
   const navigate = useNavigate({ from: '/book/$bookId' });
-  const { search: urlSearch } = useSearch({ from: '/book/$bookId' });
-  const searchText = urlSearch || '';
-
-  const highlightsData = useHighlightsTabData(book);
-  const flashcardsData = useFlashcardsTabData(book);
+  const { search: urlSearch, tagId } = useSearch({ from: '/book/$bookId' });
+  const highlightsData = useHighlightsTabData(book, urlSearch, tagId);
+  const flashcardsData = useFlashcardsTabData(book, tagId);
 
   const handleTagClick = (newTagId: number | null) => {
     navigate({
@@ -211,7 +209,7 @@ const MobileNavigationWrapper = ({ book, activeTab }: MobileNavigationWrapperPro
   };
 
   const handleBookmarkClick = (highlightId: number) => {
-    if (searchText) {
+    if (urlSearch) {
       navigate({
         search: (prev) => ({
           ...prev,
@@ -224,7 +222,7 @@ const MobileNavigationWrapper = ({ book, activeTab }: MobileNavigationWrapperPro
   };
 
   const handleChapterClick = (chapterId: number | string) => {
-    if (searchText) {
+    if (urlSearch) {
       navigate({
         search: (prev) => ({
           ...prev,
