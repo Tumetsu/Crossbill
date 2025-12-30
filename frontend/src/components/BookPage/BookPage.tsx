@@ -126,7 +126,6 @@ const BookPageContent = ({ book }: BookPageContentProps) => {
 
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const navigate = useNavigate({ from: '/book/$bookId' });
   const activeTab: TabValue = tab || 'highlights';
@@ -230,7 +229,6 @@ const BookPageContent = ({ book }: BookPageContentProps) => {
           <HighlightsTab
             book={book}
             isDesktop={isDesktop}
-            isMobile={isMobile}
             onSearch={handleSearch}
             onTagClick={handleTagClick}
             onBookmarkClick={handleBookmarkClick}

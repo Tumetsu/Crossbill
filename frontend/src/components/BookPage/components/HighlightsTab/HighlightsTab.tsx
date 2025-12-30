@@ -52,21 +52,7 @@ export const HighlightsTab = ({
     onTagClick(newTagId);
   };
 
-  // Highlight search
-  const { data: searchResults, isLoading: isSearching } =
-    useSearchHighlightsApiV1HighlightsSearchGet(
-      {
-        searchText: searchText || 'placeholder',
-        bookId: book.id,
-      },
-      {
-        query: {
-          enabled: searchText.length > 0,
-        },
-      }
-    );
-
-  const showSearchResults = searchText.length > 0;
+  const bookSearch = useBookSearch(book.id, searchText, selectedTagId);
 
   const bookmarksByHighlightId = useMemo(
     () => keyBy(book.bookmarks || [], 'highlight_id'),
@@ -93,21 +79,12 @@ export const HighlightsTab = ({
       .filter((chapter) => chapter.highlights && chapter.highlights.length > 0);
   }, [book.chapters, selectedTagId]);
 
-  // Filter search results by selected tag
-  const filteredSearchResults = useMemo(() => {
-    if (!selectedTagId) {
-      return searchResults?.highlights;
-    }
-    return searchResults?.highlights?.filter((highlight) =>
-      highlight.highlight_tags?.some((tag) => tag.id === selectedTagId)
-    );
-  }, [searchResults?.highlights, selectedTagId]);
-
   // Unified chapter data for both search and regular views
+  // This is a side effect of our search api returning different data structure from regular book api.
   const chapters: ChapterData[] = useMemo(() => {
-    let result;
-    if (showSearchResults) {
-      result = groupSearchResultsIntoChapters(filteredSearchResults);
+    let result: ChapterData[];
+    if (bookSearch.showSearchResults) {
+      result = bookSearch.chapters;
     } else {
       result = filteredChapters.map((chapter) => ({
         id: chapter.id,
@@ -125,9 +102,8 @@ export const HighlightsTab = ({
     }
 
     return result;
-  }, [showSearchResults, filteredSearchResults, filteredChapters, isReversed]);
+  }, [bookSearch.showSearchResults, bookSearch.chapters, isReversed, filteredChapters]);
 
-  // Flat array of all highlights for navigation
   const allHighlights = useMemo(() => {
     return chapters.flatMap((chapter) => chapter.highlights);
   }, [chapters]);
@@ -146,9 +122,8 @@ export const HighlightsTab = ({
 
   const navData = useHighlightsTabData(chapters);
 
-  // Compute empty message based on state
   const emptyMessage = useMemo(() => {
-    if (showSearchResults) {
+    if (bookSearch.showSearchResults) {
       return selectedTagId
         ? 'No highlights found matching your search with the selected tag.'
         : 'No highlights found matching your search.';
@@ -156,11 +131,10 @@ export const HighlightsTab = ({
     return selectedTagId
       ? 'No highlights found with the selected tag.'
       : 'No chapters found for this book.';
-  }, [showSearchResults, selectedTagId]);
+  }, [bookSearch.showSearchResults, selectedTagId]);
 
   return (
     <>
-      {/* Mobile Layout */}
       {!isDesktop && (
         <>
           <MobileHighlightsContent
@@ -170,7 +144,7 @@ export const HighlightsTab = ({
             onToggleReverse={() => setIsReversed(!isReversed)}
             chapters={chapters}
             bookmarksByHighlightId={bookmarksByHighlightId}
-            isSearching={showSearchResults && isSearching}
+            isSearching={bookSearch.isSearching}
             emptyMessage={emptyMessage}
             onOpenHighlight={handleOpenHighlight}
           />
@@ -189,7 +163,6 @@ export const HighlightsTab = ({
         </>
       )}
 
-      {/* Desktop Layout */}
       {isDesktop && (
         <DesktopHighlightsContent
           book={book}
@@ -204,7 +177,7 @@ export const HighlightsTab = ({
           navChapters={navData.chapters}
           bookmarksByHighlightId={bookmarksByHighlightId}
           allHighlights={allHighlights}
-          isSearching={showSearchResults && isSearching}
+          isSearching={bookSearch.isSearching}
           emptyMessage={emptyMessage}
           onOpenHighlight={handleOpenHighlight}
           onBookmarkClick={onBookmarkClick}
@@ -230,7 +203,6 @@ export const HighlightsTab = ({
   );
 };
 
-// Mobile content component
 interface MobileHighlightsContentProps {
   searchText: string;
   onSearch: (value: string) => void;
@@ -287,7 +259,6 @@ const MobileHighlightsContent = ({
   </>
 );
 
-// Desktop content component
 interface DesktopHighlightsContentProps {
   book: BookDetails;
   tags: HighlightTagInBook[];
@@ -328,7 +299,6 @@ const DesktopHighlightsContent = ({
   onChapterClick,
 }: DesktopHighlightsContentProps) => (
   <ThreeColumnLayout>
-    {/* Left Column - Tags */}
     <HighlightTags
       tags={tags}
       tagGroups={book.highlight_tag_groups || []}
@@ -337,7 +307,6 @@ const DesktopHighlightsContent = ({
       onTagClick={onTagClick}
     />
 
-    {/* Middle Column - Search + Content */}
     <Box>
       <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 3 }}>
         <Box sx={{ flexGrow: 1 }}>
@@ -370,7 +339,6 @@ const DesktopHighlightsContent = ({
       />
     </Box>
 
-    {/* Right Column - Bookmarks + Chapters */}
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <BookmarkList
         bookmarks={book.bookmarks || []}
@@ -393,5 +361,40 @@ const useHighlightsTabData = (chapters: ChapterData[]) => {
 
   return {
     chapters: navChapters,
+  };
+};
+
+const useBookSearch = (bookId: number, searchText: string, selectedTagId: number | undefined) => {
+  const { data: searchResults, isLoading: isSearching } =
+    useSearchHighlightsApiV1HighlightsSearchGet(
+      {
+        searchText: searchText || 'placeholder',
+        bookId: bookId,
+      },
+      {
+        query: {
+          enabled: searchText.length > 0,
+        },
+      }
+    );
+
+  const filteredByTag = useMemo(() => {
+    if (!selectedTagId) {
+      return searchResults?.highlights || [];
+    }
+    return (
+      searchResults?.highlights?.filter((highlight) =>
+        highlight.highlight_tags?.some((tag) => tag.id === selectedTagId)
+      ) || []
+    );
+  }, [searchResults?.highlights, selectedTagId]);
+
+  const showSearchResults = searchText.length > 0;
+  const chapters = groupSearchResultsIntoChapters(filteredByTag);
+
+  return {
+    showSearchResults,
+    chapters,
+    isSearching: isSearching && showSearchResults,
   };
 };
