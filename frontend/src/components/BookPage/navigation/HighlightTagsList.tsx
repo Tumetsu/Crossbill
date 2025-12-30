@@ -654,73 +654,57 @@ const ListTitle = ({ onAddGroupClick }: { onAddGroupClick: () => void }) => {
   );
 };
 
-export const HighlightTagsList = ({
-  tags,
-  tagGroups,
-  bookId,
-  selectedTag,
-  onTagClick,
-  hideTitle,
-  hideEmptyGroups,
-}: HighlightTagsProps) => {
-  const [showAddGroup, setShowAddGroup] = useState(false);
-  const [activeTag, setActiveTag] = useState<HighlightTagInBook | null>(null);
-  const [movingTagId, setMovingTagId] = useState<number | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+const useTagMutations = (bookId: number) => {
   const queryClient = useQueryClient();
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Set up sensors for drag and drop
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 5,
-      },
-    })
-  );
-
-  // Mutations
   const updateTagMutation = useUpdateHighlightTagApiV1BooksBookIdHighlightTagTagIdPost({
     mutation: {
       onMutate: async (variables) => {
         await queryClient.cancelQueries({
-          queryKey: [`/api/v1/books/${bookId}`],
+          queryKey: getGetBookDetailsApiV1BooksBookIdGetQueryKey(bookId),
         });
-        const previousBook = queryClient.getQueryData([`/api/v1/books/${bookId}`]);
-        queryClient.setQueryData([`/api/v1/books/${bookId}`], (old: unknown) => {
-          if (!old || typeof old !== 'object') return old;
-          const bookData = old as { highlight_tags: HighlightTagInBook[] };
-          return {
-            ...bookData,
-            highlight_tags: bookData.highlight_tags.map((tag: HighlightTagInBook) =>
-              tag.id === variables.tagId
-                ? { ...tag, tag_group_id: variables.data.tag_group_id }
-                : tag
-            ),
-          };
-        });
+        const previousBook = queryClient.getQueryData(
+          getGetBookDetailsApiV1BooksBookIdGetQueryKey(bookId)
+        );
+        queryClient.setQueryData(
+          getGetBookDetailsApiV1BooksBookIdGetQueryKey(bookId),
+          (old: unknown) => {
+            if (!old || typeof old !== 'object') return old;
+            const bookData = old as { highlight_tags: HighlightTagInBook[] };
+            return {
+              ...bookData,
+              highlight_tags: bookData.highlight_tags.map((tag: HighlightTagInBook) =>
+                tag.id === variables.tagId
+                  ? { ...tag, tag_group_id: variables.data.tag_group_id }
+                  : tag
+              ),
+            };
+          }
+        );
         return { previousBook };
       },
       onSuccess: (updatedTag) => {
-        queryClient.setQueryData([`/api/v1/books/${bookId}`], (old: unknown) => {
-          if (!old || typeof old !== 'object') return old;
-          const bookData = old as { highlight_tags: HighlightTagInBook[] };
-          return {
-            ...bookData,
-            highlight_tags: bookData.highlight_tags.map((tag: HighlightTagInBook) =>
-              tag.id === updatedTag.id ? updatedTag : tag
-            ),
-          };
-        });
+        queryClient.setQueryData(
+          getGetBookDetailsApiV1BooksBookIdGetQueryKey(bookId),
+          (old: unknown) => {
+            if (!old || typeof old !== 'object') return old;
+            const bookData = old as { highlight_tags: HighlightTagInBook[] };
+            return {
+              ...bookData,
+              highlight_tags: bookData.highlight_tags.map((tag: HighlightTagInBook) =>
+                tag.id === updatedTag.id ? updatedTag : tag
+              ),
+            };
+          }
+        );
       },
       onError: (error: unknown, _variables, context) => {
         if (context?.previousBook) {
-          queryClient.setQueryData([`/api/v1/books/${bookId}`], context.previousBook);
+          queryClient.setQueryData(
+            getGetBookDetailsApiV1BooksBookIdGetQueryKey(bookId),
+            context.previousBook
+          );
         }
         console.error('Failed to update tag:', error);
       },
@@ -752,6 +736,111 @@ export const HighlightTagsList = ({
       },
     },
   });
+
+  const handleEditSubmit = async (groupId: number, value: string) => {
+    if (!value.trim()) {
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      await createOrUpdateGroupMutation.mutateAsync({
+        data: {
+          book_id: bookId,
+          id: groupId,
+          name: value.trim(),
+        },
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleUpdateTagGroup = async (tagId: number, newGroupId: number | null) => {
+    await updateTagMutation.mutateAsync({
+      bookId,
+      tagId,
+      data: {
+        tag_group_id: newGroupId,
+      },
+    });
+  };
+
+  const handleDeleteGroup = async (groupId: number) => {
+    setIsProcessing(true);
+    try {
+      await deleteGroupMutation.mutateAsync({
+        tagGroupId: groupId,
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleAddGroup = async (newGroupName: string, onSuccess: () => void) => {
+    if (!newGroupName.trim()) {
+      onSuccess();
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      await createOrUpdateGroupMutation.mutateAsync({
+        data: {
+          book_id: bookId,
+          name: newGroupName.trim(),
+        },
+      });
+      onSuccess();
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return {
+    isProcessing,
+    handleEditSubmit,
+    handleUpdateTagGroup,
+    handleAddGroup,
+    handleDeleteGroup,
+  };
+};
+
+export const HighlightTagsList = ({
+  tags,
+  tagGroups,
+  bookId,
+  selectedTag,
+  onTagClick,
+  hideTitle,
+  hideEmptyGroups,
+}: HighlightTagsProps) => {
+  const [showAddGroup, setShowAddGroup] = useState(false);
+  const [activeTag, setActiveTag] = useState<HighlightTagInBook | null>(null);
+  const [movingTagId, setMovingTagId] = useState<number | null>(null);
+
+  const {
+    handleEditSubmit,
+    handleAddGroup,
+    handleDeleteGroup,
+    handleUpdateTagGroup,
+    isProcessing,
+  } = useTagMutations(bookId);
+
+  // Set up sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    })
+  );
 
   // Sort tags alphabetically and filter out the tag being moved
   const sortedTags = [...tags]
@@ -792,68 +881,12 @@ export const HighlightTagsList = ({
     if (tag.tag_group_id !== newGroupId) {
       setMovingTagId(tag.id);
       try {
-        await updateTagMutation.mutateAsync({
-          bookId,
-          tagId: tag.id,
-          data: {
-            tag_group_id: newGroupId,
-          },
-        });
+        await handleUpdateTagGroup(tag.id, newGroupId);
       } catch (error) {
         console.error('Error updating tag group:', error);
       } finally {
         setMovingTagId(null);
       }
-    }
-  };
-
-  const handleEditSubmit = async (groupId: number, value: string) => {
-    if (!value.trim()) {
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      await createOrUpdateGroupMutation.mutateAsync({
-        data: {
-          book_id: bookId,
-          id: groupId,
-          name: value.trim(),
-        },
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleDeleteGroup = async (groupId: number) => {
-    setIsProcessing(true);
-    try {
-      await deleteGroupMutation.mutateAsync({
-        tagGroupId: groupId,
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleAddGroup = async (newGroupName: string) => {
-    if (!newGroupName.trim()) {
-      setShowAddGroup(false);
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      await createOrUpdateGroupMutation.mutateAsync({
-        data: {
-          book_id: bookId,
-          name: newGroupName.trim(),
-        },
-      });
-      setShowAddGroup(false);
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -865,7 +898,7 @@ export const HighlightTagsList = ({
         <AddGroupForm
           isVisible={showAddGroup}
           isProcessing={isProcessing}
-          onSubmit={handleAddGroup}
+          onSubmit={(newName: string) => handleAddGroup(newName, () => setShowAddGroup(false))}
           onCancel={() => {
             setShowAddGroup(false);
           }}
