@@ -342,9 +342,7 @@ const DesktopFlashcardsContent = ({
   </ThreeColumnLayout>
 );
 
-// Export hook for getting flashcard data needed by MobileNavigation
-// eslint-disable-next-line react-refresh/only-export-components
-export const useFlashcardsTabData = (
+const useFlashcardsTabData = (
   allFlashcardsWithContext: FlashcardWithContext[],
   chapters: FlashcardChapterData[],
   tagsInBook: HighlightTagInBook[] | undefined,
