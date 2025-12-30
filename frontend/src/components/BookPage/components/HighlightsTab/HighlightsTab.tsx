@@ -20,7 +20,6 @@ import { HighlightViewModal } from './HighlightViewModal';
 interface HighlightsTabProps {
   book: BookDetails;
   isDesktop: boolean;
-  isMobile: boolean;
   onSearch: (value: string) => void;
   onTagClick: (tagId: number | null) => void;
   onBookmarkClick: (highlightId: number) => void;
@@ -30,7 +29,6 @@ interface HighlightsTabProps {
 export const HighlightsTab = ({
   book,
   isDesktop,
-  isMobile,
   onSearch,
   onTagClick,
   onBookmarkClick,
@@ -142,7 +140,7 @@ export const HighlightsTab = ({
     handleOpenHighlight,
     handleCloseHighlight,
     handleModalNavigate,
-  } = useHighlightModal({ allHighlights, isMobile });
+  } = useHighlightModal({ allHighlights, isMobile: !isDesktop });
 
   const tags = book.highlight_tags || [];
 

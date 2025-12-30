@@ -212,63 +212,38 @@ const BookPageContent = ({ book }: BookPageContentProps) => {
     <Container sx={{ minHeight: '100vh' }} maxWidth="xl">
       <ScrollToTopButton />
       <FadeInOut ekey={'book-title'}>
-        {/* Mobile Layout */}
-        {!isDesktop && (
-          <Box sx={{ py: 8, maxWidth: '800px', mx: 'auto' }}>
-            <BookTitle book={book} />
-            <BookTabs activeTab={activeTab} handleTabChange={handleTabChange} book={book} />
-
-            {activeTab === 'highlights' ? (
-              <HighlightsTab
-                book={book}
-                isDesktop={false}
-                isMobile={isMobile}
-                onSearch={handleSearch}
-                onTagClick={handleTagClick}
-                onBookmarkClick={handleBookmarkClick}
-                onChapterClick={handleChapterClick}
-              />
-            ) : (
-              <FlashcardsTab
-                book={book}
-                isDesktop={false}
-                onSearch={handleSearch}
-                onTagClick={handleTagClick}
-                onChapterClick={handleChapterClick}
-              />
-            )}
-          </Box>
-        )}
-
-        {/* Desktop Layout */}
-        {isDesktop && (
+        {isDesktop ? (
           <Box sx={{ px: 4, py: 4 }}>
             <BookTitle book={book} />
             <ThreeColumnLayout>
               <div></div> {/* Empty left column for spacing */}
               <BookTabs activeTab={activeTab} handleTabChange={handleTabChange} book={book} />
             </ThreeColumnLayout>
-
-            {activeTab === 'highlights' ? (
-              <HighlightsTab
-                book={book}
-                isDesktop={true}
-                isMobile={false}
-                onSearch={handleSearch}
-                onTagClick={handleTagClick}
-                onBookmarkClick={handleBookmarkClick}
-                onChapterClick={handleChapterClick}
-              />
-            ) : (
-              <FlashcardsTab
-                book={book}
-                isDesktop={true}
-                onSearch={handleSearch}
-                onTagClick={handleTagClick}
-                onChapterClick={handleChapterClick}
-              />
-            )}
           </Box>
+        ) : (
+          <Box sx={{ py: 8, maxWidth: '800px', mx: 'auto' }}>
+            <BookTitle book={book} />
+            <BookTabs activeTab={activeTab} handleTabChange={handleTabChange} book={book} />
+          </Box>
+        )}
+        {activeTab === 'highlights' ? (
+          <HighlightsTab
+            book={book}
+            isDesktop={isDesktop}
+            isMobile={isMobile}
+            onSearch={handleSearch}
+            onTagClick={handleTagClick}
+            onBookmarkClick={handleBookmarkClick}
+            onChapterClick={handleChapterClick}
+          />
+        ) : (
+          <FlashcardsTab
+            book={book}
+            isDesktop={isDesktop}
+            onSearch={handleSearch}
+            onTagClick={handleTagClick}
+            onChapterClick={handleChapterClick}
+          />
         )}
       </FadeInOut>
     </Container>
