@@ -8,7 +8,13 @@ import {
 } from '@/api/generated/highlights/highlights.ts';
 import { HighlightTagGroupInBook, HighlightTagInBook } from '@/api/generated/model';
 import { Collapsable } from '@/components/common/animations/Collapsable.tsx';
-import { AddIcon, DeleteIcon, EditIcon, ExpandMoreIcon, TagIcon } from '@/components/common/Icons.tsx';
+import {
+  AddIcon,
+  DeleteIcon,
+  EditIcon,
+  ExpandMoreIcon,
+  TagIcon,
+} from '@/components/common/Icons.tsx';
 import { createAdaptiveHoverStyles, createAdaptiveTouchTarget } from '@/utils/adaptiveHover.ts';
 import {
   DndContext,
@@ -615,6 +621,36 @@ const TagGroupHeader = ({
   );
 };
 
+const ListTitle = ({ onAddGroupClick }: { onAddGroupClick: () => void }) => {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        mb: 2,
+        pb: 1.5,
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <TagIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+        <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 600 }}>
+          Tags
+        </Typography>
+      </Box>
+      <Tooltip title="Add new group">
+        <IconButton
+          size="small"
+          onClick={onAddGroupClick}
+          sx={{ color: 'text.secondary', padding: 0.5 }}
+        >
+          <AddIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+      </Tooltip>
+    </Box>
+  );
+};
+
 export const HighlightTagsList = ({
   tags,
   tagGroups,
@@ -860,34 +896,7 @@ export const HighlightTagsList = ({
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <Box>
-        {/* Header */}
-        {!hideTitle && (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              mb: 2,
-              pb: 1.5,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <TagIcon sx={{ fontSize: 18, color: 'primary.main' }} />
-              <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 600 }}>
-                Tags
-              </Typography>
-            </Box>
-            <Tooltip title="Add new group">
-              <IconButton
-                size="small"
-                onClick={() => setShowAddGroup(true)}
-                sx={{ color: 'text.secondary', padding: 0.5 }}
-              >
-                <AddIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        )}
+        {!hideTitle && <ListTitle onAddGroupClick={() => setShowAddGroup(true)} />}
 
         {/* Add New Group Form */}
         <AddGroupForm
