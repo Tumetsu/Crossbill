@@ -212,7 +212,7 @@ const BookPageContent = ({ book }: BookPageContentProps) => {
       <ScrollToTopButton />
       <FadeInOut ekey={'book-title'}>
         {isDesktop ? (
-          <Box sx={{ px: 4, py: 4 }}>
+          <Box sx={{ pt: 4 }}>
             <BookTitle book={book} />
             <ThreeColumnLayout>
               <div></div> {/* Empty left column for spacing */}
@@ -220,7 +220,7 @@ const BookPageContent = ({ book }: BookPageContentProps) => {
             </ThreeColumnLayout>
           </Box>
         ) : (
-          <Box sx={{ py: 8, maxWidth: '800px', mx: 'auto' }}>
+          <Box sx={{ pt: 8, maxWidth: '800px', mx: 'auto' }}>
             <BookTitle book={book} />
             <BookTabs activeTab={activeTab} handleTabChange={handleTabChange} book={book} />
           </Box>
