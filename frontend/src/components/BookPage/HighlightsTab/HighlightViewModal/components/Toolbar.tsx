@@ -15,7 +15,32 @@ import {
 } from '@/components/common/Icons.tsx';
 import { Box, IconButton, Tooltip } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
+
+interface ToolbarIconButtonProps {
+  title: string;
+  onClick: () => void;
+  disabled: boolean;
+  ariaLabel: string;
+  icon: ReactNode;
+}
+
+const ToolbarIconButton = ({
+  title,
+  onClick,
+  disabled,
+  ariaLabel,
+  icon,
+}: ToolbarIconButtonProps) => {
+  return (
+    <Tooltip title={title}>
+      <IconButton onClick={onClick} disabled={disabled} aria-label={ariaLabel} size="small">
+        {icon}
+      </IconButton>
+    </Tooltip>
+  );
+};
 
 interface ToolbarProps {
   highlightId: number;
@@ -24,8 +49,8 @@ interface ToolbarProps {
   bookmark?: Bookmark;
   noteVisible: boolean;
   onNoteToggle: () => void;
-  flashcardVisible?: boolean;
-  onFlashcardToggle?: () => void;
+  flashcardVisible: boolean;
+  onFlashcardToggle: () => void;
   onDelete: () => void;
   disabled?: boolean;
 }
@@ -37,7 +62,7 @@ export const Toolbar = ({
   bookmark,
   noteVisible,
   onNoteToggle,
-  flashcardVisible = false,
+  flashcardVisible,
   onFlashcardToggle,
   onDelete,
   disabled = false,
@@ -62,66 +87,48 @@ export const Toolbar = ({
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-      <Tooltip title="Copy link">
-        <IconButton
-          onClick={handleCopyLink}
-          disabled={isDisabled}
-          aria-label="Copy link to highlight"
-          size="small"
-        >
-          <LinkIcon />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title="Copy highlight content">
-        <IconButton
-          onClick={handleCopyContent}
-          disabled={isDisabled}
-          aria-label="Copy highlight text"
-          size="small"
-        >
-          <CopyIcon />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title={bookmark ? 'Remove bookmark' : 'Add bookmark'}>
-        <IconButton
-          onClick={handleBookmarkToggle}
-          disabled={isDisabled}
-          aria-label={bookmark ? 'Remove bookmark' : 'Add bookmark'}
-          size="small"
-        >
-          {bookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
-        </IconButton>
-      </Tooltip>
-      <Tooltip title={noteVisible ? 'Hide note' : 'Show note'}>
-        <IconButton
-          onClick={onNoteToggle}
-          disabled={isDisabled}
-          aria-label={noteVisible ? 'Hide note' : 'Show note'}
-          size="small"
-        >
-          <NotesIcon />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title={flashcardVisible ? 'Hide flashcards' : 'Show flashcards'}>
-        <IconButton
-          onClick={onFlashcardToggle}
-          disabled={isDisabled}
-          aria-label={flashcardVisible ? 'Hide flashcards' : 'Show flashcards'}
-          size="small"
-        >
-          <FlashcardsIcon />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title="Delete highlight">
-        <IconButton
-          onClick={onDelete}
-          disabled={isDisabled}
-          aria-label="Delete highlight"
-          size="small"
-        >
-          <DeleteIcon />
-        </IconButton>
-      </Tooltip>
+      <ToolbarIconButton
+        title="Copy link"
+        onClick={handleCopyLink}
+        disabled={isDisabled}
+        ariaLabel="Copy link to highlight"
+        icon={<LinkIcon />}
+      />
+      <ToolbarIconButton
+        title="Copy highlight content"
+        onClick={handleCopyContent}
+        disabled={isDisabled}
+        ariaLabel="Copy highlight text"
+        icon={<CopyIcon />}
+      />
+      <ToolbarIconButton
+        title={bookmark ? 'Remove bookmark' : 'Add bookmark'}
+        onClick={handleBookmarkToggle}
+        disabled={isDisabled}
+        ariaLabel={bookmark ? 'Remove bookmark' : 'Add bookmark'}
+        icon={bookmark ? <BookmarkFilledIcon /> : <BookmarkIcon />}
+      />
+      <ToolbarIconButton
+        title={noteVisible ? 'Hide note' : 'Show note'}
+        onClick={onNoteToggle}
+        disabled={isDisabled}
+        ariaLabel={noteVisible ? 'Hide note' : 'Show note'}
+        icon={<NotesIcon />}
+      />
+      <ToolbarIconButton
+        title={flashcardVisible ? 'Hide flashcards' : 'Show flashcards'}
+        onClick={onFlashcardToggle}
+        disabled={isDisabled}
+        ariaLabel={flashcardVisible ? 'Hide flashcards' : 'Show flashcards'}
+        icon={<FlashcardsIcon />}
+      />
+      <ToolbarIconButton
+        title="Delete highlight"
+        onClick={onDelete}
+        disabled={isDisabled}
+        ariaLabel="Delete highlight"
+        icon={<DeleteIcon />}
+      />
     </Box>
   );
 };
