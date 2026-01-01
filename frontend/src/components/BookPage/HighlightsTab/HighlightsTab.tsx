@@ -327,7 +327,7 @@ const DesktopHighlightsContent = ({
         allHighlights={allHighlights}
         onBookmarkClick={onBookmarkClick}
       />
-      <ChapterNav chapters={navChapters} onChapterClick={onChapterClick} />
+      <ChapterNav chapters={navChapters} onChapterClick={onChapterClick} countType="highlight" />
     </Box>
   </ThreeColumnLayout>
 );

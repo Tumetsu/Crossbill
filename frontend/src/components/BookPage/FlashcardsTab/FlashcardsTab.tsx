@@ -329,7 +329,7 @@ const DesktopFlashcardsContent = ({
       />
     </Box>
 
-    <ChapterNav chapters={navChapters} onChapterClick={onChapterClick} />
+    <ChapterNav chapters={navChapters} onChapterClick={onChapterClick} countType="flashcard" />
   </ThreeColumnLayout>
 );
 

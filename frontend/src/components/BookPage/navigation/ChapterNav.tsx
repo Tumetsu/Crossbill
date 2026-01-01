@@ -13,9 +13,10 @@ interface ChapterNavProps {
   chapters: ChapterNavigationData[];
   onChapterClick: (chapterId: number) => void;
   hideTitle?: boolean;
+  countType: 'highlight' | 'flashcard';
 }
 
-export const ChapterNav = ({ chapters, onChapterClick, hideTitle }: ChapterNavProps) => {
+export const ChapterNav = ({ chapters, onChapterClick, hideTitle, countType }: ChapterNavProps) => {
   const [isExpanded, setIsExpanded] = useState(() => true);
   const effectiveIsExpanded = hideTitle ? true : isExpanded;
 
@@ -110,7 +111,7 @@ export const ChapterNav = ({ chapters, onChapterClick, hideTitle }: ChapterNavPr
                   color="text.secondary"
                   sx={{ fontSize: '0.75rem', mt: 0.25, display: 'block' }}
                 >
-                  {chapter.itemCount} highlight
+                  {chapter.itemCount} {countType === 'highlight' ? 'highlight' : 'flashcard'}
                   {chapter.itemCount !== 1 ? 's' : ''}
                 </Typography>
               </Box>

@@ -104,20 +104,32 @@ const BookmarksDrawerContent = ({
   );
 };
 
+type TabType = 'highlights' | 'flashcards';
+
 interface ChaptersDrawerContentProps {
   chapters: ChapterNavigationData[];
   onChapterClick: (chapterId: number) => void;
+  currentTab: TabType;
 }
 
-const ChaptersDrawerContent = ({ chapters, onChapterClick }: ChaptersDrawerContentProps) => {
+const ChaptersDrawerContent = ({
+  chapters,
+  onChapterClick,
+  currentTab,
+}: ChaptersDrawerContentProps) => {
   return (
     <Box>
-      <ChapterNav chapters={chapters} onChapterClick={onChapterClick} hideTitle={true} />
+      <ChapterNav
+        chapters={chapters}
+        onChapterClick={onChapterClick}
+        hideTitle={true}
+        countType={currentTab === 'highlights' ? 'highlight' : 'flashcard'}
+      />
     </Box>
   );
 };
 
-type MobileNavigationProps = { currentTab: 'highlights' | 'flashcards' } & TagsDrawerContentProps &
+type MobileNavigationProps = { currentTab: TabType } & TagsDrawerContentProps &
   BookmarksDrawerContentProps &
   ChaptersDrawerContentProps;
 type DrawerContentType = 'tags' | 'bookmarks' | 'chapters';
@@ -167,6 +179,7 @@ export const MobileNavigation = ({
     return (
       <ChaptersDrawerContent
         chapters={chapters}
+        currentTab={currentTab}
         onChapterClick={(data) => {
           setDrawerState(false);
           onChapterClick(data);
