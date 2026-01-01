@@ -188,20 +188,7 @@ export const BookTitle = ({ book }: BookTitleProps) => {
       </Box>
 
       {/* Edit Modal */}
-      <BookEditModal
-        book={{
-          id: book.id,
-          title: book.title,
-          author: book.author,
-          isbn: book.isbn,
-          cover: book.cover,
-          tags: book.tags || [],
-          created_at: book.created_at,
-          updated_at: book.updated_at,
-        }}
-        open={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-      />
+      <BookEditModal book={book} open={editModalOpen} onClose={() => setEditModalOpen(false)} />
     </>
   );
 };

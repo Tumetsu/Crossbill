@@ -199,6 +199,7 @@ class HighlightRepository:
                 selectinload(models.Highlight.book),
                 selectinload(models.Highlight.chapter),
                 selectinload(models.Highlight.highlight_tags),
+                selectinload(models.Highlight.flashcards),
             )
             .where(
                 models.Highlight.user_id == user_id,

@@ -126,9 +126,7 @@ class ChapterWithHighlights(BaseModel):
     id: int
     name: str
     chapter_number: int | None = Field(None, description="Chapter order number from TOC")
-    highlights: list[Highlight] = Field(
-        default_factory=list, description="List of highlights in this chapter"
-    )
+    highlights: list[Highlight] = Field(..., description="List of highlights in this chapter")
     created_at: dt
     updated_at: dt
 
@@ -157,7 +155,7 @@ class BookDetails(BaseModel):
         default_factory=list, description="List of bookmarks for this book"
     )
     chapters: list[ChapterWithHighlights] = Field(
-        default_factory=list, description="List of chapters with highlights"
+        ..., description="List of chapters with highlights"
     )
     created_at: dt
     updated_at: dt
@@ -212,6 +210,15 @@ class HighlightSearchResponse(BaseModel):
         default_factory=list, description="List of matching highlights"
     )
     total: int = Field(..., ge=0, description="Total number of results")
+
+
+class BookHighlightSearchResponse(BaseModel):
+    """Schema for book-scoped highlight search response grouped by chapter."""
+
+    chapters: list[ChapterWithHighlights] = Field(
+        ..., description="Chapters containing matching highlights"
+    )
+    total: int = Field(..., ge=0, description="Total number of matching highlights")
 
 
 class HighlightNoteUpdate(BaseModel):

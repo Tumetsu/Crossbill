@@ -38,7 +38,7 @@ export interface BookDetails {
   /** List of bookmarks for this book */
   bookmarks?: Bookmark[];
   /** List of chapters with highlights */
-  chapters?: ChapterWithHighlights[];
+  chapters: ChapterWithHighlights[];
   created_at: string;
   updated_at: string;
   last_viewed?: BookDetailsLastViewed;

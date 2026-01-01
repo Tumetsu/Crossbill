@@ -1,5 +1,7 @@
-import { useGetHighlightTagsApiV1BooksBookIdHighlightTagsGet } from '@/api/generated/books/books.ts';
-import { useSearchHighlightsApiV1HighlightsSearchGet } from '@/api/generated/highlights/highlights.ts';
+import {
+  useGetHighlightTagsApiV1BooksBookIdHighlightTagsGet,
+  useSearchBookHighlightsApiV1BooksBookIdHighlightsGet,
+} from '@/api/generated/books/books.ts';
 import type {
   BookDetails,
   Bookmark,
@@ -8,7 +10,6 @@ import type {
   HighlightTagInBook,
 } from '@/api/generated/model';
 import { useHighlightModal } from '@/components/BookPage/HighlightsTab/hooks/useHighlightModal.ts';
-import { groupSearchResultsIntoChapters } from '@/components/BookPage/HighlightsTab/utils/groupSearchResults.ts';
 import { SortIcon } from '@/components/common/Icons.tsx';
 import { SearchBar } from '@/components/common/SearchBar.tsx';
 import { ThreeColumnLayout } from '@/components/layout/Layouts.tsx';
@@ -58,31 +59,24 @@ export const HighlightsTab = ({
     onTagClick(newTagId);
   };
 
-  const bookSearch = useBookSearch(book.id, searchText, selectedTagId);
+  const bookSearch = useBookSearch(book.id, searchText);
 
   const bookmarksByHighlightId = useMemo(
     () => keyBy(book.bookmarks || [], 'highlight_id'),
     [book.bookmarks]
   );
 
-  // Unified chapter data for both search and regular views
-  // This is a side effect of our search api returning different data structure from regular book api.
   const chapters: ChapterData[] = useMemo(() => {
-    let result: ChapterData[];
-    if (bookSearch.showSearchResults) {
-      result = bookSearch.chapters;
-    } else {
-      const chaptersWithHighlights = (book.chapters || []).filter(
-        (chapter) => chapter.highlights && chapter.highlights.length > 0
-      );
+    const toFilter = bookSearch.showSearchResults
+      ? bookSearch.chapters
+      : book.chapters.filter((chapter) => chapter.highlights.length > 0);
 
-      result = filterChaptersByTag(selectedTagId, chaptersWithHighlights).map((chapter) => ({
-        id: chapter.id,
-        name: chapter.name || 'Unknown Chapter',
-        chapterNumber: chapter.chapter_number ?? undefined,
-        highlights: (chapter.highlights || []) as Highlight[],
-      }));
-    }
+    const result = filterChaptersByTag(selectedTagId, toFilter).map((chapter) => ({
+      id: chapter.id,
+      name: chapter.name || 'Unknown Chapter',
+      chapterNumber: chapter.chapter_number ?? undefined,
+      highlights: chapter.highlights,
+    }));
 
     if (isReversed) {
       return [...result].reverse().map((chapter) => ({
@@ -352,12 +346,12 @@ const useHighlightsTabData = (chapters: ChapterData[]) => {
   };
 };
 
-const useBookSearch = (bookId: number, searchText: string, selectedTagId: number | undefined) => {
+const useBookSearch = (bookId: number, searchText: string) => {
   const { data: searchResults, isLoading: isSearching } =
-    useSearchHighlightsApiV1HighlightsSearchGet(
+    useSearchBookHighlightsApiV1BooksBookIdHighlightsGet(
+      bookId,
       {
         searchText: searchText || 'placeholder',
-        bookId: bookId,
       },
       {
         query: {
@@ -366,23 +360,11 @@ const useBookSearch = (bookId: number, searchText: string, selectedTagId: number
       }
     );
 
-  const filteredByTag = useMemo(() => {
-    if (!selectedTagId) {
-      return searchResults?.highlights || [];
-    }
-    return (
-      searchResults?.highlights?.filter((highlight) =>
-        highlight.highlight_tags?.some((tag) => tag.id === selectedTagId)
-      ) || []
-    );
-  }, [searchResults?.highlights, selectedTagId]);
-
   const showSearchResults = searchText.length > 0;
-  const chapters = groupSearchResultsIntoChapters(filteredByTag);
 
   return {
     showSearchResults,
-    chapters,
+    chapters: searchResults?.chapters || [],
     isSearching: isSearching && showSearchResults,
   };
 };
@@ -398,9 +380,9 @@ function filterChaptersByTag(
   return chaptersWithHighlights
     .map((chapter) => ({
       ...chapter,
-      highlights: chapter.highlights?.filter((highlight) =>
+      highlights: chapter.highlights.filter((highlight) =>
         highlight.highlight_tags?.some((tag) => tag.id === selectedTagId)
       ),
     }))
-    .filter((chapter) => chapter.highlights && chapter.highlights.length > 0);
+    .filter((chapter) => chapter.highlights.length > 0);
 }
